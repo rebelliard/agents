@@ -147,11 +147,14 @@ mismatch:
   from the template.
 - Timeline entries all match the compact grammar:
   ``<n>. **<label>** (`~t=<start>–<end>s`): <what changed>``.
+- No em dash or prose separator after the backticked time range — the
+  description follows a colon (`:`), not `—`.
+- Initial state and Analysis notes use `-` bullet lines, not paragraphs.
 - No prose-only timeline labels such as `<label> (~t=...):`; the label
   must be bold and the timestamp must be in backticks.
 - Summary and analysis notes use the same backticked time format as the
   timeline — no bare `~t=…` or `~Ns` outside backticks.
-- Analysis notes include relevant coverage, window, and audio context, but
-  omit sheet-labeling and `drawtext` details.
+- Analysis notes are a bulleted list (coverage, window, audio context,
+  etc.), not a paragraph; omit sheet-labeling and `drawtext` details.
 - The evidence footnote appears exactly as shown in the template unless
   the skip rules above apply.

@@ -284,11 +284,14 @@ describe a single frame as if it were the whole animation.
    the report:" before sending. Before emitting any app/site/domain,
    page or slide title, menu item, or typed input name, confirm it came
    from a relevant full-size PNG; if not, replace it with generic
-   wording rather than guessing. Then run the reference file's
-   determinism checklist: all four headings (🎬 🖼️ ▶️ ⚠️), compact
-   label-first timeline rows, relevant Analysis notes without
-   sheet-labeling details, and the 🔍 evidence footnote when applicable
-   (see frame-report-format Writing Rules for when to skip).
+   wording rather than guessing. Keep Initial state and Analysis notes
+   as `-` bulleted lists, not paragraphs. Timeline rows must match
+   ``**<label>** (`~t=<start>–<end>s`): <what changed>`` — use a colon
+   after the backticked range, not an em dash. Then run the reference
+   file's determinism checklist: all four headings (🎬 🖼️ ▶️ ⚠️),
+   compact label-first timeline rows, bulleted Analysis notes, and the
+   verbatim 🔍 evidence footnote when applicable (see frame-report-format
+   Writing Rules for when to skip).
 
 ## On-demand evidence
 
