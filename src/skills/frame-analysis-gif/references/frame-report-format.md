@@ -84,7 +84,8 @@ same sections the same way.
   type selected", "Title edited". In the description, name the
   control/object and the resulting visible value when available (subject
   to the redaction rules). Avoid catch-all labels such as "Menu
-  interaction" or "Final state".
+  interaction", "Large content change", "Page loading", "Question
+  displayed", or "Final state".
 - The Analysis notes section is a bulleted list.
 - Do not append tile numbers or `— evidence: tiles …` suffixes to Initial
   state or timeline entries.

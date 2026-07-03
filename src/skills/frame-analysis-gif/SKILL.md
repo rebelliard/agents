@@ -280,10 +280,11 @@ describe a single frame as if it were the whole animation.
    [frame-report-format.md](references/frame-report-format.md). For the
    final animated report, the first visible line must be exactly
    `### 🎬 Animation summary`; delete any status or setup sentence such
-   as "Now..." or "Perfect!" before sending. Before emitting any
-   app/site/domain, page or slide title, menu item, or typed input name,
-   confirm it came from a relevant full-size PNG; if not, replace it with
-   generic wording rather than guessing. Then run the reference file's
+   as "Now...", "Perfect!", "Based on the frames...", or "Let me create
+   the report:" before sending. Before emitting any app/site/domain,
+   page or slide title, menu item, or typed input name, confirm it came
+   from a relevant full-size PNG; if not, replace it with generic
+   wording rather than guessing. Then run the reference file's
    determinism checklist: all four headings (🎬 🖼️ ▶️ ⚠️), compact
    label-first timeline rows, relevant Analysis notes without
    sheet-labeling details, and the 🔍 evidence footnote when applicable

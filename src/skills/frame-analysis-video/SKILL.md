@@ -43,6 +43,11 @@ order:
 `### 🎬 Recording summary` → `### 🖼️ Initial state` → `### ▶️ Timeline` →
 `### ⚠️ Analysis notes`
 
+When emitting this report, begin your reply directly with
+`### 🎬 Recording summary`. Do not output any preamble, plan, or
+reasoning recap (for example "Now I have enough information to write
+the report") before the first heading.
+
 This format does not yield to phrasing in the user's request. When the user
 asks for "a numbered list", "a description", or "the steps", satisfy that
 request inside the template: the ▶️ Timeline is the numbered list of steps,
@@ -176,11 +181,15 @@ describe a single frame as if it were the whole recording.
      Each sheet entry names the global tile numbers it shows
      (`"tiles": "13-24"`), row-major (left-to-right, then
      top-to-bottom).
-   - Sheet tiles are downscaled for overview reading. When a tile lacks
-     detail (small text, cursor position, form values), read the
-     full-size PNG at `outDir` + `sampled[].file` — `changeScore` marks
-     the biggest transitions, but small-score frames often hold the
-     typed-input deltas.
+   - Sheet tiles are downscaled overviews and are too coarse to read text
+     reliably. Before naming any product/app, page or slide title, menu
+     item, or typed input, open the relevant full-size PNG(s) at `outDir` +
+     `sampled[].file` and read the text there — do not transcribe a name
+     or label from a contact-sheet tile. If the text is still unreadable
+     at full size, keep the wording generic rather than guessing. For
+     typed-input sequences, inspect the final full-size frame of the
+     sequence; `changeScore` marks the biggest transitions, but small-score
+     frames often hold the decisive typed-input delta.
    - `labeled` is often `false` — many ffmpeg builds (including current
      Homebrew) lack the `drawtext` filter. This is normal, not a failure,
      and should never appear in the user-facing report.
@@ -251,12 +260,18 @@ describe a single frame as if it were the whole recording.
    changed. Do not produce a tile-by-tile inventory. Apply the Sensitive
    content rule to the Initial state and Timeline prose.
    Use the template in
-   [frame-report-format.md](references/frame-report-format.md). Before
-   sending, run the reference file's determinism checklist: all four
-   headings (🎬 🖼️ ▶️ ⚠️), compact label-first timeline rows, relevant
-   Analysis notes without sheet-labeling details, and the 🔍 evidence
-   footnote when applicable (see frame-report-format Writing Rules for
-   when to skip).
+   [frame-report-format.md](references/frame-report-format.md). For the
+   final video report, the first visible line must be exactly
+   `### 🎬 Recording summary`; delete any status or setup sentence such
+   as "Now...", "Perfect!", "Based on the frames...", or "Let me create
+   the report:" before sending. Before emitting any app/site/domain,
+   page or slide title, menu item, or typed input name, confirm it came
+   from a relevant full-size PNG; if not, replace it with generic
+   wording rather than guessing. Then run the reference file's
+   determinism checklist: all four headings (🎬 🖼️ ▶️ ⚠️), compact
+   label-first timeline rows, relevant Analysis notes without
+   sheet-labeling details, and the 🔍 evidence footnote when applicable
+   (see frame-report-format Writing Rules for when to skip).
 
 ## On-demand evidence
 
@@ -299,6 +314,9 @@ Trigger phrases: "proof", "evidence", "show frames", "show your work",
   between tiles.
 - Do not pad the timeline with static-state descriptions; state setup once
   in Initial state.
+- Do not log a panel, sidebar, chat, or element already present in the
+  first frame as a timeline action — it is Initial state context. Add it
+  to the timeline only if it opens, closes, or visibly changes on screen.
 - Do not abandon the report template because the user asked for a list or
   description — render their request inside the template's sections.
 - Do not invent transitions between sampled frames. If a cause is not

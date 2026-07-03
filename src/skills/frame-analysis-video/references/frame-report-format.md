@@ -84,9 +84,13 @@ duration markers like `~26s` in backticks>
   the end is the first sampled time where the new state is visible. If the
   trigger is not directly visible, keep the bracketing range and say the
   change happens between those times.
-- The bold label names the change, not the UI state. Keep it short and
-  concrete: "Address bar typing", "Dashboard loads", "New slide picker",
-  "Title edited".
+- The bold label names the concrete change, not the UI state. Keep it
+  short and concrete: "Address bar typing", "Dashboard loads", "Slide
+  type selected", "Title edited". In the description, name the
+  control/object and the resulting visible value when available (subject
+  to the redaction rules). Avoid catch-all labels such as "Menu
+  interaction", "Large content change", "Page loading", "Question
+  displayed", or "Final state".
 - The Analysis notes section is a bulleted list.
 - Do not append tile numbers or `— evidence: tiles …` suffixes to Initial
   state or timeline entries.
@@ -97,6 +101,9 @@ duration markers like `~26s` in backticks>
   sidebars/panels and which tab is active in a tab view.
 - Every timeline step must describe something _changing_. If a line
   describes what is simply visible, it belongs in Initial state.
+- Do not assert outcomes or conclusions that are not visible on screen
+  (for example "ready for use", "setup complete", "the user is done").
+  Describe only the observed change.
 - Start the timeline at the first observed change; do not spend steps
   re-describing static context.
 - Keep Initial state brief — only the context needed to understand the
@@ -134,8 +141,10 @@ duration markers like `~26s` in backticks>
 Before sending, compare the draft against this checklist and fix every
 mismatch:
 
-- Exactly four section headings, in this order, using the literal emoji
-  prefixes from the template.
+- The first visible line of the reply is `### 🎬 Recording summary`, with
+  no reasoning, status text, or setup prose before it. Exactly four
+  section headings follow, in this order, using the literal emoji prefixes
+  from the template.
 - Timeline entries all match the compact grammar:
   ``<n>. **<label>** (`~t=<start>–<end>s`): <what changed>``.
 - No prose-only timeline labels such as `<label> (~t=...):`; the label
