@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Code Review",
+      "description": "Skills for skeptical review of agent-written or high-risk code changes.",
+      "skills": ["adversarial-review"]
+    }
+  ]
+}

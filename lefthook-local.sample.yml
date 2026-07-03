@@ -1,0 +1,22 @@
+# Personal overrides for lefthook.yml.
+#
+# Get started:
+#   cp lefthook-local.sample.yml lefthook-local.yml
+
+# pre-commit:
+#   commands:
+#     format-biome:
+#       skip: true
+#     format-markdown:
+#       skip: true
+#     tc:
+#       skip: true
+
+# pre-push:
+#   commands:
+#     format-check:
+#       skip: true
+#     tc:
+#       skip: true
+#     test:
+#       skip: true
