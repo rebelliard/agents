@@ -11,9 +11,9 @@ npx skills add rebelliard/agents
 Install a single skill:
 
 ```bash
-npx skills add rebelliard/agents/adversarial-review
-npx skills add rebelliard/agents/frame-analysis-gif
-npx skills add rebelliard/agents/frame-analysis-video
+npx skills add https://github.com/rebelliard/agents --skill adversarial-review
+npx skills add https://github.com/rebelliard/agents --skill frame-analysis-gif
+npx skills add https://github.com/rebelliard/agents --skill frame-analysis-video
 ```
 
 ## Included skills
