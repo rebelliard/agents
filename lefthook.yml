@@ -18,6 +18,9 @@ pre-commit:
       glob: "*.{md,mdx}"
       run: bash .git-hooks/format-staged-markdown.sh {staged_files}
       stage_fixed: true
+    py-compile:
+      glob: "*.py"
+      run: bash .git-hooks/compile-staged-python.sh {staged_files}
     tc:
       glob: "*.{ts,tsx}"
       run: pnpm tc

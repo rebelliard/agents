@@ -15,7 +15,9 @@
     "format": "biome check --write . && prettier --config .git-hooks/prettierrc.markdown.json --write \"**/*.{md,mdx}\"",
     "format:check": "biome ci . && prettier --config .git-hooks/prettierrc.markdown.json --check \"**/*.{md,mdx}\"",
     "tc": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "pnpm test:py && pnpm test:js",
+    "test:js": "vitest run --passWithNoTests",
+    "test:py": "python3 -B -m unittest discover -s tests"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",

@@ -6,6 +6,11 @@
       "title": "Code Review",
       "description": "Skills for skeptical review of agent-written or high-risk code changes.",
       "skills": ["adversarial-review"]
+    },
+    {
+      "title": "Media Analysis",
+      "description": "Skills for analyzing animated images and videos as ordered frame sequences.",
+      "skills": ["frame-analysis-gif", "frame-analysis-video"]
     }
   ]
 }

@@ -13,6 +13,8 @@ Use `pnpm` for all commands.
 - Each skill should have its own folder, named with lowercase kebab-case.
 - Each skill folder should include a `SKILL.md` entrypoint with `name` and `description` YAML frontmatter.
 - Install local skills by symlinking skills from `src/skills/` into `.agents/skills`.
+- Keep repo tests outside published skill folders. Put skill tests under `tests/skills/`, not under
+  `src/skills/<skill-name>/`, so installed or packaged skills do not include test files.
 
 ## Validation Strategy
 
@@ -23,6 +25,9 @@ Run focused validation on what you changed.
 - Rewrite TypeScript, JavaScript, JSON, and other non-Markdown files with
   `pnpm exec biome check --write <file-or-path>`.
 - Verify with `pnpm exec biome ci <file-or-path>` before finishing.
+- Python uses standard-library formatting conventions in this repo for now. Validate Python changes
+  with `python3 -B -m unittest discover -s tests` or `pnpm test`; pre-commit only compiles staged
+  Python files.
 - Markdown and MDX use Prettier with `.git-hooks/prettierrc.markdown.json` only. Do not add a
   repo-wide `.prettierrc`.
 - For agent-authored Markdown (`*.md`, `*.mdx`), wrap prose at roughly 80 columns. This includes
