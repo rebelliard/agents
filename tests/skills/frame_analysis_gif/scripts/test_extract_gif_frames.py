@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -194,7 +194,7 @@ class ExtractGifFramesTest(unittest.TestCase):
         self.assertIn("--max-frames requires a value", parsed["error"]["message"])
 
     # test_parse_frame_md5_csv_timebase lives only in the video test suite
-    # (tests/skills/frame_analysis_video/test_extract_video_frames.py) —
+    # (tests/skills/frame_analysis_video/scripts/test_extract_video_frames.py) —
     # test_script_parity.py pins the GIF and video copies of parse_frame_md5
     # byte-for-byte identical, so a verbatim duplicate here cannot fail
     # independently of that one.

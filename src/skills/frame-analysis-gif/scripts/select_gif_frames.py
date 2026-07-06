@@ -14,31 +14,31 @@ DEFAULT_LOOP_DEDUPE_THRESHOLD = 0.02
 def select_gif_frames(
     frames: list[dict[str, Any]], options: dict[str, Any] | None = None
 ) -> list[dict[str, Any]]:
-    options = options or {}
+    opts = options or {}
     normalized_frames = normalize_frames(frames)
     if len(normalized_frames) <= 1:
         return normalized_frames
 
     max_frames = _clamp_integer(
-        options.get("maxFrames"),
+        opts.get("maxFrames"),
         2,
         len(normalized_frames),
         DEFAULT_MAX_FRAMES,
     )
     min_frames = min(
         max_frames,
-        _clamp_integer(options.get("minFrames"), 1, max_frames, DEFAULT_MIN_FRAMES),
+        _clamp_integer(opts.get("minFrames"), 1, max_frames, DEFAULT_MIN_FRAMES),
     )
     scene_threshold = (
-        options["sceneThreshold"]
-        if _is_finite_number(options.get("sceneThreshold"))
-        and options["sceneThreshold"] >= 0
+        opts["sceneThreshold"]
+        if _is_finite_number(opts.get("sceneThreshold"))
+        and opts["sceneThreshold"] >= 0
         else DEFAULT_SCENE_THRESHOLD
     )
     loop_dedupe_threshold = (
-        options["loopDedupeThreshold"]
-        if _is_finite_number(options.get("loopDedupeThreshold"))
-        and options["loopDedupeThreshold"] >= 0
+        opts["loopDedupeThreshold"]
+        if _is_finite_number(opts.get("loopDedupeThreshold"))
+        and opts["loopDedupeThreshold"] >= 0
         else DEFAULT_LOOP_DEDUPE_THRESHOLD
     )
 

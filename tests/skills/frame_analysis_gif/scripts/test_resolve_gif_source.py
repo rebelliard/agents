@@ -13,7 +13,7 @@ from unittest import mock
 
 
 SCRIPT_DIR = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[4]
     / "src/skills/frame-analysis-gif/scripts"
 )
 sys.path.insert(0, str(SCRIPT_DIR))

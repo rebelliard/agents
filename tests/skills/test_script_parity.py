@@ -35,9 +35,30 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 EXTRACT_GIF_SCRIPT = (
     REPO_ROOT / "src/skills/frame-analysis-gif/scripts/extract_gif_frames.py"
 )
+EXTRACT_GIF_SCRIPTS = [
+    EXTRACT_GIF_SCRIPT,
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_changes.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_cli.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_constants.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_errors.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_probe.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_render.py",
+    REPO_ROOT / "src/skills/frame-analysis-gif/scripts/gif_utils.py",
+]
 EXTRACT_VIDEO_SCRIPT = (
     REPO_ROOT / "src/skills/frame-analysis-video/scripts/extract_video_frames.py"
 )
+EXTRACT_VIDEO_SCRIPTS = [
+    EXTRACT_VIDEO_SCRIPT,
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_changes.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_cli.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_constants.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_errors.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_probe.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_render.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_utils.py",
+    REPO_ROOT / "src/skills/frame-analysis-video/scripts/video_window.py",
+]
 SELECT_GIF_SCRIPT = (
     REPO_ROOT / "src/skills/frame-analysis-gif/scripts/select_gif_frames.py"
 )
@@ -220,7 +241,9 @@ PAIRS = [
     {
         "name": "extract",
         "gif_script": EXTRACT_GIF_SCRIPT,
+        "gif_scripts": EXTRACT_GIF_SCRIPTS,
         "video_script": EXTRACT_VIDEO_SCRIPT,
+        "video_scripts": EXTRACT_VIDEO_SCRIPTS,
         "shared": EXTRACT_SHARED_FUNCTIONS,
         "normalized_shared": EXTRACT_NORMALIZED_SHARED_FUNCTIONS,
         "allowed_divergent": EXTRACT_ALLOWED_DIVERGENT,
@@ -253,6 +276,16 @@ def _parse_top_level_functions(path: Path) -> dict[str, str]:
     }
 
 
+def _parse_top_level_functions_from_scripts(paths: list[Path]) -> dict[str, str]:
+    functions: dict[str, str] = {}
+    for path in paths:
+        for name, source in _parse_top_level_functions(path).items():
+            if name in functions:
+                raise AssertionError(f"{name} is defined in multiple scripts")
+            functions[name] = source
+    return functions
+
+
 def _parse_top_level_classes(path: Path) -> dict[str, str]:
     tree = ast.parse(path.read_text())
     return {
@@ -260,6 +293,16 @@ def _parse_top_level_classes(path: Path) -> dict[str, str]:
         for node in tree.body
         if isinstance(node, ast.ClassDef)
     }
+
+
+def _parse_top_level_classes_from_scripts(paths: list[Path]) -> dict[str, str]:
+    classes: dict[str, str] = {}
+    for path in paths:
+        for name, source in _parse_top_level_classes(path).items():
+            if name in classes:
+                raise AssertionError(f"{name} is defined in multiple scripts")
+            classes[name] = source
+    return classes
 
 
 def _parse_top_level_constants(path: Path) -> dict[str, str]:
@@ -274,6 +317,16 @@ def _parse_top_level_constants(path: Path) -> dict[str, str]:
     return constants
 
 
+def _parse_top_level_constants_from_scripts(paths: list[Path]) -> dict[str, str]:
+    constants: dict[str, str] = {}
+    for path in paths:
+        for name, value in _parse_top_level_constants(path).items():
+            if name in constants:
+                raise AssertionError(f"{name} is defined in multiple scripts")
+            constants[name] = value
+    return constants
+
+
 def _normalize(source: str, substitutions: dict[str, str]) -> str:
     normalized = source
     for old, new in substitutions.items():
@@ -284,6 +337,8 @@ def _normalize(source: str, substitutions: dict[str, str]) -> str:
 def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
     gif_script = pair["gif_script"]
     video_script = pair["video_script"]
+    gif_scripts = pair.get("gif_scripts", [gif_script])
+    video_scripts = pair.get("video_scripts", [video_script])
     shared = pair["shared"]
     normalized_shared = pair["normalized_shared"]
     allowed_divergent = pair["allowed_divergent"]
@@ -294,13 +349,13 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
 
     class PairParityTest(unittest.TestCase):
         def test_shared_functions_are_textually_identical(self):
-            gif_functions = _parse_top_level_functions(gif_script)
-            video_functions = _parse_top_level_functions(video_script)
+            gif_functions = _parse_top_level_functions_from_scripts(gif_scripts)
+            video_functions = _parse_top_level_functions_from_scripts(video_scripts)
 
             for name in shared:
                 self.assertIn(name, gif_functions, f"{name} missing from {gif_script}")
                 self.assertIn(
-                    name, video_functions, f"{name} missing from {video_script}"
+                    name, video_functions, f"{name} missing from {video_scripts}"
                 )
                 self.assertEqual(
                     gif_functions[name],
@@ -312,13 +367,13 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_normalized_shared_functions_match_after_substitution(self):
-            gif_functions = _parse_top_level_functions(gif_script)
-            video_functions = _parse_top_level_functions(video_script)
+            gif_functions = _parse_top_level_functions_from_scripts(gif_scripts)
+            video_functions = _parse_top_level_functions_from_scripts(video_scripts)
 
             for name, substitutions in normalized_shared.items():
                 self.assertIn(name, gif_functions, f"{name} missing from {gif_script}")
                 self.assertIn(
-                    name, video_functions, f"{name} missing from {video_script}"
+                    name, video_functions, f"{name} missing from {video_scripts}"
                 )
                 normalized_gif = _normalize(gif_functions[name], substitutions)
                 self.assertEqual(
@@ -336,8 +391,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
             self.assertEqual(set(normalized_shared) & set(shared), set())
 
         def test_allowed_divergent_functions_actually_differ(self):
-            gif_functions = _parse_top_level_functions(gif_script)
-            video_functions = _parse_top_level_functions(video_script)
+            gif_functions = _parse_top_level_functions_from_scripts(gif_scripts)
+            video_functions = _parse_top_level_functions_from_scripts(video_scripts)
 
             for name in sorted(allowed_divergent):
                 if name not in gif_functions or name not in video_functions:
@@ -354,8 +409,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_every_common_function_is_classified(self):
-            gif_functions = _parse_top_level_functions(gif_script)
-            video_functions = _parse_top_level_functions(video_script)
+            gif_functions = _parse_top_level_functions_from_scripts(gif_scripts)
+            video_functions = _parse_top_level_functions_from_scripts(video_scripts)
             common = set(gif_functions) & set(video_functions)
             classified = set(shared) | set(normalized_shared) | allowed_divergent
             unclassified = sorted(common - classified)
@@ -372,12 +427,12 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
             )
 
         def test_shared_classes_are_textually_identical(self):
-            gif_classes = _parse_top_level_classes(gif_script)
-            video_classes = _parse_top_level_classes(video_script)
+            gif_classes = _parse_top_level_classes_from_scripts(gif_scripts)
+            video_classes = _parse_top_level_classes_from_scripts(video_scripts)
 
             for name in shared_classes:
                 self.assertIn(name, gif_classes, f"{name} missing from {gif_script}")
-                self.assertIn(name, video_classes, f"{name} missing from {video_script}")
+                self.assertIn(name, video_classes, f"{name} missing from {video_scripts}")
                 self.assertEqual(
                     gif_classes[name],
                     video_classes[name],
@@ -388,8 +443,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_allowed_divergent_classes_actually_differ(self):
-            gif_classes = _parse_top_level_classes(gif_script)
-            video_classes = _parse_top_level_classes(video_script)
+            gif_classes = _parse_top_level_classes_from_scripts(gif_scripts)
+            video_classes = _parse_top_level_classes_from_scripts(video_scripts)
 
             for name in sorted(allowed_divergent_classes):
                 if name not in gif_classes or name not in video_classes:
@@ -404,8 +459,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_every_common_class_is_classified(self):
-            gif_classes = _parse_top_level_classes(gif_script)
-            video_classes = _parse_top_level_classes(video_script)
+            gif_classes = _parse_top_level_classes_from_scripts(gif_scripts)
+            video_classes = _parse_top_level_classes_from_scripts(video_scripts)
             common = set(gif_classes) & set(video_classes)
             classified = set(shared_classes) | allowed_divergent_classes
             unclassified = sorted(common - classified)
@@ -421,13 +476,13 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
             )
 
         def test_shared_constants_are_equal(self):
-            gif_constants = _parse_top_level_constants(gif_script)
-            video_constants = _parse_top_level_constants(video_script)
+            gif_constants = _parse_top_level_constants_from_scripts(gif_scripts)
+            video_constants = _parse_top_level_constants_from_scripts(video_scripts)
 
             for name in shared_constants:
                 self.assertIn(name, gif_constants, f"{name} missing from {gif_script}")
                 self.assertIn(
-                    name, video_constants, f"{name} missing from {video_script}"
+                    name, video_constants, f"{name} missing from {video_scripts}"
                 )
                 self.assertEqual(
                     gif_constants[name],
@@ -439,8 +494,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_allowed_divergent_constants_actually_differ(self):
-            gif_constants = _parse_top_level_constants(gif_script)
-            video_constants = _parse_top_level_constants(video_script)
+            gif_constants = _parse_top_level_constants_from_scripts(gif_scripts)
+            video_constants = _parse_top_level_constants_from_scripts(video_scripts)
 
             for name in sorted(allowed_divergent_constants):
                 if name not in gif_constants or name not in video_constants:
@@ -455,8 +510,8 @@ def _make_pair_test_case(pair: dict) -> type[unittest.TestCase]:
                 )
 
         def test_every_common_constant_is_classified(self):
-            gif_constants = _parse_top_level_constants(gif_script)
-            video_constants = _parse_top_level_constants(video_script)
+            gif_constants = _parse_top_level_constants_from_scripts(gif_scripts)
+            video_constants = _parse_top_level_constants_from_scripts(video_scripts)
             common = set(gif_constants) & set(video_constants)
             classified = set(shared_constants) | allowed_divergent_constants
             unclassified = sorted(common - classified)

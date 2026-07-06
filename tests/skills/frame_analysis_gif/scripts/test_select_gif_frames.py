@@ -7,12 +7,12 @@ from pathlib import Path
 
 
 SCRIPT_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "src/skills/frame-analysis-video/scripts"
+    Path(__file__).resolve().parents[4]
+    / "src/skills/frame-analysis-gif/scripts"
 )
 sys.path.insert(0, str(SCRIPT_DIR))
 spec = importlib.util.spec_from_file_location(
-    "select_video_frames", SCRIPT_DIR / "select_video_frames.py"
+    "select_gif_frames", SCRIPT_DIR / "select_gif_frames.py"
 )
 select_module = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
@@ -28,9 +28,20 @@ def frame(index: int, change_score: float = 0, **extras):
     }
 
 
-class SelectVideoFramesTest(unittest.TestCase):
+class SelectGifFramesTest(unittest.TestCase):
     def test_returns_single_frame_unchanged(self):
-        self.assertEqual(select_module.select_video_frames([frame(0)]), [frame(0)])
+        self.assertEqual(select_module.select_gif_frames([frame(0)]), [frame(0)])
+
+    def test_dedupes_loop_wraparound(self):
+        selected = select_module.select_gif_frames(
+            [
+                frame(0),
+                frame(1, 0.2),
+                frame(2, 0.01, loopDeltaFromFirst=0.005),
+            ]
+        )
+
+        self.assertEqual([item["index"] for item in selected], [0, 1])
 
     def test_captures_hash_distinct_changes_when_budget_allows(self):
         frames = [
@@ -42,7 +53,7 @@ class SelectVideoFramesTest(unittest.TestCase):
             frame(9, 0, hashChanged=False),
         ]
 
-        selected = select_module.select_video_frames(frames, {"maxFrames": 24})
+        selected = select_module.select_gif_frames(frames, {"maxFrames": 24})
 
         self.assertEqual([item["index"] for item in selected], list(range(10)))
 
@@ -55,12 +66,12 @@ class SelectVideoFramesTest(unittest.TestCase):
             ],
         ]
 
-        selected = select_module.select_video_frames(frames, {"maxFrames": 6})
+        selected = select_module.select_gif_frames(frames, {"maxFrames": 6})
 
         self.assertEqual([item["index"] for item in selected], [0, 1, 5, 10, 15, 20])
 
     def test_normalizes_missing_indexes_and_timestamps(self):
-        selected = select_module.select_video_frames(
+        selected = select_module.select_gif_frames(
             [{}, {"changeScore": 0.4}, {}], {"maxFrames": 3}
         )
 
