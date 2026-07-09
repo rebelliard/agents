@@ -20,12 +20,6 @@ Intent:
 Review target:
 `[uncommitted changes | branch diff | PR diff | named files]`
 
-Requested mode:
-`[quick | standard | deep, or "not provided"]`
-
-Additional focus, if provided:
-`[also_consider, or "not provided"]`
-
 PR metadata, if a PR exists:
 `[title and body, or "not available"]`
 

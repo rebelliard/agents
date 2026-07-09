@@ -8,7 +8,11 @@ Under each numbered finding, put **What breaks**, **Why it matters**, **Recommen
 
 Under `## 🎯 Verdict`, emit one bold badge and bullet metadata for **Intent reviewed** and
 **Reviewers**. Do not include critic lane completion status in the verdict header; record failed,
-empty, or timed-out lanes under `## 📋 Review limits`.
+empty, or timed-out lanes under `## 📋 Review limits`. For each critic, show its routing role and
+concrete selected model and effort. Append `partial independence` or `heuristic substitution` when
+applicable. For example: `Claude ([lead model]) → Efficient GPT ([selected model], [effort]) +
+Efficient Cursor ([selected model], [effort])`, or for a deep review, `Claude ([lead model]) → Quality
+GPT ([selected model], [effort]) + Quality Cursor ([selected model], [effort])`.
 
 ## Verdict badges
 
@@ -32,7 +36,7 @@ WITH RISKS** or **✅ PASS** (see **Verdict standard** in `SKILL.md`).
 **❌ FAIL**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead family → critic families, e.g. Composer → GPT + Opus | GPT → Opus + Composer | Claude → GPT + Composer | Local model → hosted model | GPT → GPT | limited independence]`
+- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
 
 ## 📊 Findings
 
@@ -76,7 +80,7 @@ Clean pass (no meaningful limits):
 **✅ PASS**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead family → critic families, e.g. Composer → GPT + Opus | GPT → Opus + Composer | Claude → GPT + Composer | Local model → hosted model | GPT → GPT | limited independence]`
+- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
 
 No material issues found.
 
@@ -93,7 +97,7 @@ Pass with meaningful review limits:
 **⚠️ PASS WITH RISKS**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead family → critic families, e.g. Composer → GPT + Opus | GPT → Opus + Composer | Claude → GPT + Composer | Local model → hosted model | GPT → GPT | limited independence]`
+- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
 
 No material issues found.
 

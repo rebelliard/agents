@@ -2,93 +2,158 @@
 
 ## Overview
 
-Runs an opt-in cold-context review for agent-written or high-risk changes.
+Opt-in cold-context review gate for agent-written or high-risk changes. It complements always-on PR
+review automations; it does not replace them.
 
-Use it when a change needs a separate critic to challenge intent fit, contracts, edge cases, and risk
-before human review or merge.
+- **Purpose** — force a separate critic to challenge whether a change satisfies intent, contracts, and
+  risk constraints before human review or merge.
+- **Quick default** — two role-resolved `skeptic` critics; enough for most changes.
+- **Model routing** — resolve durable roles from models the tooling exposes, using current
+  [Cursor evals](https://cursor.com/evals) when the choice is unclear.
+- **Reviewer isolation** — critic lanes do not see each other's prompts, outputs, or partial findings
+  before lead synthesis.
+- **Semantic focus** — critics target non-deterministic risks. Do not spend critic budget
+  re-running CI, hooks, or formatters.
+- **PR metadata drift** — when a PR exists, critics compare the title and body with the diff and PR
+  template, when present, without demanding exhaustive PR prose.
+- **Verdict** — **❌ FAIL**, **⚠️ PASS WITH RISKS**, or **✅ PASS**, with provenance and review limits
+  recorded. See `references/verdict-format.md`.
+- **Remediation** — strict sequence: review → main-chat report → choices. In one assistant turn,
+  post the full report in the message body; when findings exist, numbered inline remediation choices
+  below it in fixed order: Apply accepted, Apply all, Do nothing (omit hidden options). See
+  `SKILL.md` steps 6–7.
 
-It helps the agent:
+## Flow
 
-- Spawn isolated critics with focused review lenses.
-- Focus review effort on semantic risks rather than rerunning CI or formatters.
-- Return a clear verdict: fail, pass with risks, or pass.
+```mermaid
+flowchart TD
+    Start["User asks for adversarial review"] --> Scope["Define intent and review scope"]
+    Scope --> Packet["Create critic packet<br/>intent, PR metadata/template if available,<br/>diff, contracts"]
+    Packet --> Signals["Attach known validation signals<br/>only if already available or cheap"]
+    Signals --> Isolation["Reviewer isolation rule<br/>no critic sees another critic's prompt, output, or partial findings"]
+    Isolation --> Route["Resolve critic roles<br/>from exposed models<br/>and current eval evidence"]
+    Route --> Mode{"Choose review mode"}
 
-## When to use it
+    Mode --> Quick["quick<br/>2 competing-model skeptics"]
+    Mode --> Standard["standard<br/>≤ 2 critics: skeptic + risk lane"]
+    Mode --> Deep["deep<br/>max 3 critics"]
 
-Use this skill when a normal review is not enough because the same agent or
-model family produced the work being judged. It is especially useful for:
+    Quick --> QuickFanout["Send skeptic lens<br/>to two critic families"]
+    Standard --> StandardFanout["Send skeptic + one risk lens<br/>to up to two critics"]
+    Deep --> DeepFanout["Send skeptic + risk lenses<br/>to up to three critics"]
 
-- Agent-written code that needs fresh skepticism before human review.
-- Large diffs, cross-module changes, or changes with unclear ownership.
-- Security, permissions, data-boundary, payment, or user-data changes.
-- PRs whose title or body make claims that should be checked against the diff.
-- Ambiguous specs where reviewers should call out gaps instead of inventing
-  requirements.
+    subgraph Lanes["Independent readonly critic lanes"]
+        direction LR
+        CriticA["Critic A<br/>resolved role and model"]
+        CriticB["Critic B<br/>resolved role and model"]
+        CriticC["Optional deep critic<br/>risk-specific lens"]
+    end
 
-Do not use it as a slower replacement for formatters, typechecks, or ordinary
-CI. Include those results when they are already available, but spend critic
-budget on semantic risk.
+    QuickFanout --> CriticA
+    QuickFanout --> CriticB
+    StandardFanout --> CriticA
+    StandardFanout --> CriticB
+    DeepFanout --> CriticA
+    DeepFanout --> CriticB
+    DeepFanout --> CriticC
 
-## Inputs
+    CriticA --> Join["Join only after lanes finish<br/>or time out"]
+    CriticB --> Join
+    CriticC --> Join
+    Join --> Limit["Record timeouts, empty output,<br/>or unavailable families as review limits"]
+    Limit --> Synthesize["Synthesize findings<br/>dedupe, reject overreach, accept real issues"]
 
-- `review_target`: required. Uncommitted changes, branch diff, PR diff, named
-  files, or supplied content.
-- `intent`: required when it is not already clear. State what the change is
-  supposed to accomplish before running critics.
-- `mode`: optional. One of `quick`, `standard`, or `deep`. The workflow honors
-  a requested mode unless the target clearly needs a heavier review.
-- `also_consider`: optional. Extra risks, contracts, or review focus from the
-  user.
+    Synthesize --> Verdict{"Material blocker?"}
+    Verdict -->|yes| Fail["❌ FAIL<br/>synthesize full verdict report"]
+    Verdict -->|no blocker, meaningful<br/>risks or limits| Risk["⚠️ PASS WITH RISKS<br/>show findings, limits, provenance"]
+    Verdict -->|no| Pass["✅ PASS<br/>show provenance and limits"]
 
-## Review modes
+    Fail --> PostReport["Post full report in assistant<br/>message body — step 6"]
+    Risk --> PostReport
+    Pass --> PostReport
 
-| Mode       | Review shape                        | Best fit                                                                                                                    |
-| ---------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `quick`    | Default: two independent `skeptic`s | Most changes where intent and contracts are clear; keep here for medium diffs only when risk stays low.                     |
-| `standard` | `skeptic` plus one risk lane        | Medium or risky changes: roughly 50-250 changed lines, 3-6 files, new user-visible behavior, or meaningful test gaps.       |
-| `deep`     | `skeptic` plus up to two risk lanes | Large changes: more than roughly 250 changed lines, more than 6 files, cross-module work, or multiple high-risk dimensions. |
+    PostReport --> HasFindings{Findings in verdict?}
+    HasFindings -->|no| Done[End]
+    HasFindings -->|yes| InlineChoices["Numbered inline choices under report<br/>fixed order: SKILL.md step 7"]
+    InlineChoices --> AcceptedCheck{Accepted count?}
 
-Count changed lines as added plus removed lines in the reviewed diff. For very
-small changes under roughly 50 changed lines and 1-2 files, a single
-independent `skeptic` is acceptable when latency matters. Record that reduced
-coverage in the review limits.
+    AcceptedCheck -->|zero| ChoiceOverride["Apply all, Do nothing"]
+    AcceptedCheck -->|partial| ChoiceThree["Apply accepted, Apply all, Do nothing"]
+    AcceptedCheck -->|all| ChoiceTwo["Apply accepted or Do nothing"]
 
-## Reviewer lanes
+    ChoiceOverride --> ApplyAll[Apply all]
+    ChoiceOverride --> DoNothing[Do nothing]
+    ChoiceThree --> ApplyAcc[Apply accepted]
+    ChoiceThree --> ApplyAll
+    ChoiceThree --> DoNothing
+    ChoiceTwo --> ApplyAcc
+    ChoiceTwo --> DoNothing
 
-The skill includes focused lenses in `references/reviewer-lenses.md`:
+    ApplyAcc --> ReReview[Optional focused re-review]
+    ApplyAll --> ReReview
+    DoNothing --> Done
+    ReReview --> Done
+```
 
-- `skeptic`: challenges whether the implementation satisfies intent.
-- `architect`: checks fit with the surrounding system.
-- `qa-risk`: hunts regression paths and missing evidence.
-- `security`: reviews trust boundaries, secrets, permissions, and data risk.
-- `minimalist`: challenges unnecessary scope and complexity.
+## Modes
 
-`quick` keeps all critics in the `skeptic` lane. `standard` uses `skeptic` plus
-one risk lane. `deep` uses `skeptic` plus up to two risk lanes.
+| Mode       | Critics | Use when                                                         |
+| ---------- | ------- | ---------------------------------------------------------------- |
+| `quick`    | 2       | Default. Most changes.                                           |
+| `standard` | ≤ 2     | Use `skeptic` plus one risk-specific lane.                       |
+| `deep`     | ≤ 3     | Large, high-risk, security-sensitive, or ambiguous changes only. |
 
-## Output
+Prefer provider diversity over lane count. Distinct GPT reasoning models may review each other when
+paired with a non-GPT critic and reported as partial independence.
 
-The lead reviewer synthesizes the independent critics into one durable report:
+## Model routing
 
-- `## 🎯 Verdict` with exactly one bold badge: **❌ FAIL**, **⚠️ PASS WITH
-  RISKS**, or **✅ PASS**.
-- `## 📊 Findings` with a severity badge, path or symbol evidence, and the
-  fields **What breaks**, **Why it matters**, **Recommended fix**, and
-  **Validation**.
-- `## ⚖️ Lead judgment` separating accepted findings from false positives or
-  downgraded issues.
-- `## 📋 Review limits` for missing context, failed critic lanes, or limited
-  model independence.
+| Model running this chat | Quick/default critics                          | Ambiguous, high-risk, or deep critics          |
+| ----------------------- | ---------------------------------------------- | ---------------------------------------------- |
+| Cursor model            | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
+| Quality GPT             | Efficient GPT + Quality Claude                 | Efficient GPT + Quality Claude                 |
+| Other GPT               | Quality GPT + Quality Claude                   | Quality GPT + Quality Claude                   |
+| Claude / Anthropic      | Efficient GPT + Efficient Cursor               | Quality GPT + Quality Cursor                   |
+| GLM / Kimi family       | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
+| Other                   | Efficient GPT + Quality Claude                 | Quality GPT + Quality Claude                   |
 
-When findings exist, the skill offers remediation choices after the full report:
-apply accepted findings, apply all findings, or do nothing.
+- **Quality GPT** is the strongest eligible GPT model family, comparing each family's best benchmark
+  configuration.
+- **Efficient GPT** is the GPT family whose best configuration is the cheapest Pareto-efficient option
+  (no alternative is both cheaper and better) within three CursorBench score points of Quality GPT.
+  The routing table then sets lane effort.
+- **Quality Claude** is the strongest eligible Claude/Anthropic model. Fable is excluded unless the
+  user explicitly requests it.
+- **Quality Cursor** is the strongest reliable eligible model in Cursor's first-party model pool.
+- **Efficient Cursor** is the cheapest eligible model on the Cursor first-party Pareto frontier
+  (options where none is both cheaper and better). Routers such as Auto are excluded because they do
+  not provide reproducible critic identity.
+- **Lead-only coding model** can run the chat being reviewed but cannot serve as a critic. GLM and Kimi
+  are lead-only families.
 
-The report must be posted as durable main-chat content before remediation
-choices. Keep the strict order: review, then report, then choices.
+The tooling's exposed models are authoritative for availability. CursorBench is routing evidence for
+agentic coding capability, not a direct adversarial-review benchmark; published contamination and
+comparability caveats constrain automatic selection. See `SKILL.md` for resolution, substitution, and
+verdict-provenance rules.
+
+Cursor-led reviews have a fixed cost profile: one Efficient GPT critic at medium effort and one
+Quality Claude critic at high effort. They stay at two critics in deep mode unless the user explicitly
+approves extra cost; unavailable effort levels fall downward before they are allowed to rise.
+
+With the current published evidence, Efficient Cursor is expected to resolve to
+[Composer](https://cursor.com/docs/models/cursor-composer-2-5) when available. A stronger Cursor model
+such as [Grok](https://cursor.com/docs/models/grok-4-5) is considered for Quality Cursor only when the
+tooling exposes it, region and plan access allow it, and reliable evidence survives applicable
+benchmark caveats.
+
+[GLM](https://cursor.com/docs/models/glm-5-2) and
+[Kimi](https://cursor.com/docs/models/kimi-k2-5) support Cursor's agent tools and can therefore be the
+builder whose work is reviewed. They remain ineligible for critic and substitution lanes by policy,
+even if no other critic model is exposed.
 
 ## Files
 
-- `SKILL.md`: operational workflow and model-routing rules.
-- `references/reviewer-prompt.md`: critic prompt template.
-- `references/reviewer-lenses.md`: lane definitions.
-- `references/verdict-format.md`: report format and remediation rules.
+- `SKILL.md` — entrypoint and workflow.
+- `references/reviewer-lenses.md` — skeptic, architect, QA risk, security, minimalist lanes.
+- `references/reviewer-prompt.md` — critic prompt template.
+- `references/verdict-format.md` — synthesized verdict shape.
