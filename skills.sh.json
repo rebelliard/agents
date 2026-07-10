@@ -8,6 +8,11 @@
       "skills": ["adversarial-review"]
     },
     {
+      "title": "Orchestration",
+      "description": "Skills for coordinating agent workflows and routing model capability.",
+      "skills": ["orchestrate"]
+    },
+    {
       "title": "Media Analysis",
       "description": "Skills for analyzing animated images and videos as ordered frame sequences.",
       "skills": ["frame-analysis-gif", "frame-analysis-video"]

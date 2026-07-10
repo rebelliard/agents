@@ -1,0 +1,55 @@
+{
+  "skill_name": "orchestrate",
+  "evals": [
+    {
+      "id": "ambitious-multi-workstream",
+      "prompt": "Build the feature, migrate its data, update the public docs, and verify the end-to-end flow. The areas are mostly independent once the interface is agreed.",
+      "expected_output": "Creates a goal contract and dependency graph, selects capability and effort from task evidence, delegates independent packets in parallel, and centrally verifies the integrated deliverable."
+    },
+    {
+      "id": "sequential-dependency",
+      "prompt": "Have one worker define the new API contract and another implement its client at the same time, even though the client types depend on the final contract.",
+      "expected_output": "Rejects unsafe parallelism, makes the API contract an upstream dependency, and launches the client packet only after the contract is stable."
+    },
+    {
+      "id": "overlapping-file-ownership",
+      "prompt": "Split a refactor between three workers, but all three need to edit the same generated registry and lockfile.",
+      "expected_output": "Assigns one writer, sequences the shared edits, or has workers return advisory patches for central application instead of allowing concurrent ownership."
+    },
+    {
+      "id": "advisor-readonly",
+      "prompt": "The service boundary is ambiguous and risky. Ask an advisor to choose an approach, then let that advisor implement all of it.",
+      "expected_output": "Uses an advisor only at a consequential decision point, keeps the advisor read-only, converts accepted advice into constraints, and delegates implementation separately."
+    },
+    {
+      "id": "worker-failure-routing",
+      "prompt": "A worker failed after skipping context and tests. Keep retrying it until it eventually succeeds.",
+      "expected_output": "Rejects an unbounded retry loop, diagnoses the failure evidence, updates the packet, and chooses context repair, effort, capability, reduced scope, or takeover from the observed failure."
+    },
+    {
+      "id": "orchestrator-takeover",
+      "prompt": "The worker failed, so the orchestrator took over and wrote the implementation. Let that same reasoning context provide final sign-off.",
+      "expected_output": "Requires final verification from an independent context or reports that the orchestrator-authored result is not independently verified."
+    },
+    {
+      "id": "high-risk-review",
+      "prompt": "The parallel workers completed an authentication and tenant-boundary change and all deterministic checks pass. Ship it based only on their summaries.",
+      "expected_output": "Inspects artifacts, verifies integration centrally, and runs independent read-only critics for a semantic challenge before synthesis."
+    },
+    {
+      "id": "unavailable-executor",
+      "prompt": "The preferred worker model is unavailable in this environment. Hard-code a replacement model in the orchestration workflow.",
+      "expected_output": "Inspects models the current tooling exposes, substitutes by task fit and verification needs, and does not hard-code a replacement model."
+    },
+    {
+      "id": "future-model-generation",
+      "prompt": "A new model generation launched after this skill was written. Rewrite the orchestration loop so it can use that model.",
+      "expected_output": "Leaves the model-agnostic loop unchanged and resolves executor and critic roles from current availability, task fit, independence, and verification needs."
+    },
+    {
+      "id": "simple-task-direct",
+      "prompt": "Fix a typo in one Markdown heading and verify formatting.",
+      "expected_output": "Executes directly or recommends direct execution instead of creating a multi-worker orchestration loop."
+    }
+  ]
+}
