@@ -9,10 +9,11 @@ Under each numbered finding, put **What breaks**, **Why it matters**, **Recommen
 Under `## 🎯 Verdict`, emit one bold badge and bullet metadata for **Intent reviewed** and
 **Reviewers**. Do not include critic lane completion status in the verdict header; record failed,
 empty, or timed-out lanes under `## 📋 Review limits`. For each critic, show its routing role and
-concrete selected model and effort. Append `partial independence` or `heuristic substitution` when
-applicable. For example: `Claude ([lead model]) → Efficient GPT ([selected model], [effort]) +
-Efficient Cursor ([selected model], [effort])`, or for a deep review, `Claude ([lead model]) → Quality
-GPT ([selected model], [effort]) + Quality Cursor ([selected model], [effort])`.
+concrete selected model, plus effort when known. Append `partial independence` or
+`heuristic substitution` when applicable. For example:
+`Claude ([lead model]) → Efficient GPT ([selected model]) + Efficient Cursor ([selected model])`, or
+for a deep review,
+`Claude ([lead model]) → Quality GPT ([selected model]) + Quality Cursor ([selected model])`.
 
 ## Verdict badges
 
@@ -36,7 +37,7 @@ WITH RISKS** or **✅ PASS** (see **Verdict standard** in `SKILL.md`).
 **❌ FAIL**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
+- **Reviewers:** `[lead model → role (concrete model[, effort]) + role (concrete model[, effort]), e.g. Composer → Efficient GPT ([selected model]) + Quality Claude ([selected model]) | partial independence | heuristic substitution]`
 
 ## 📊 Findings
 
@@ -80,7 +81,7 @@ Clean pass (no meaningful limits):
 **✅ PASS**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
+- **Reviewers:** `[lead model → role (concrete model[, effort]) + role (concrete model[, effort]), e.g. Composer → Efficient GPT ([selected model]) + Quality Claude ([selected model]) | partial independence | heuristic substitution]`
 
 No material issues found.
 
@@ -97,7 +98,7 @@ Pass with meaningful review limits:
 **⚠️ PASS WITH RISKS**
 
 - **Intent reviewed:** `[one sentence]`
-- **Reviewers:** `[lead model → role (concrete model, effort) + role (concrete model, effort), e.g. Composer → Efficient GPT ([selected model], medium) + Quality Claude ([selected model], high) | partial independence | heuristic substitution]`
+- **Reviewers:** `[lead model → role (concrete model[, effort]) + role (concrete model[, effort]), e.g. Composer → Efficient GPT ([selected model]) + Quality Claude ([selected model]) | partial independence | heuristic substitution]`
 
 No material issues found.
 

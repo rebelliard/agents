@@ -108,48 +108,53 @@ paired with a non-GPT critic and reported as partial independence.
 
 ## Model routing
 
-| Model running this chat | Quick/default critics                          | Ambiguous, high-risk, or deep critics          |
-| ----------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| Cursor model            | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
-| Quality GPT             | Efficient GPT + Quality Claude                 | Efficient GPT + Quality Claude                 |
-| Other GPT               | Quality GPT + Quality Claude                   | Quality GPT + Quality Claude                   |
-| Claude / Anthropic      | Efficient GPT + Efficient Cursor               | Quality GPT + Quality Cursor                   |
-| GLM / Kimi family       | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
-| Other                   | Efficient GPT + Quality Claude                 | Quality GPT + Quality Claude                   |
+| Model running this chat | Quick/default critics                              | Ambiguous, high-risk, or deep critics              |
+| ----------------------- | -------------------------------------------------- | -------------------------------------------------- |
+| Cursor model            | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Quality GPT             | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Other GPT               | Quality GPT + (Quality Claude or Quality Cursor)   | Quality GPT + (Quality Claude or Quality Cursor)   |
+| Claude / Anthropic      | Efficient GPT + Efficient Cursor                   | Quality GPT + Quality Cursor                       |
+| GLM / Kimi family       | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Google / Gemini family  | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Other                   | Efficient GPT + (Quality Claude or Quality Cursor) | Quality GPT + (Quality Claude or Quality Cursor)   |
+
+`(A or B)` means prefer A when available; otherwise B.
 
 - **Quality GPT** is the strongest eligible GPT model family, comparing each family's best benchmark
   configuration.
 - **Efficient GPT** is the GPT family whose best configuration is the cheapest Pareto-efficient option
   (no alternative is both cheaper and better) within three CursorBench score points of Quality GPT.
-  The routing table then sets lane effort.
 - **Quality Claude** is the strongest eligible Claude/Anthropic model. Fable is excluded unless the
-  user explicitly requests it.
+  user explicitly requests it. In the table, `(Quality Claude or Quality Cursor)` is the fallback.
 - **Quality Cursor** is the strongest reliable eligible model in Cursor's first-party model pool.
 - **Efficient Cursor** is the cheapest eligible model on the Cursor first-party Pareto frontier
   (options where none is both cheaper and better). Routers such as Auto are excluded because they do
   not provide reproducible critic identity.
-- **Lead-only coding model** can run the chat being reviewed but cannot serve as a critic. GLM and Kimi
-  are lead-only families.
+- **Lead-only coding model** can run the chat being reviewed but cannot serve as a critic. GLM, Kimi,
+  and Google/Gemini are lead-only families.
 
 The tooling's exposed models are authoritative for availability. CursorBench is routing evidence for
 agentic coding capability, not a direct adversarial-review benchmark; published contamination and
 comparability caveats constrain automatic selection. See `SKILL.md` for resolution, substitution, and
 verdict-provenance rules.
 
-Cursor-led reviews have a fixed cost profile: one Efficient GPT critic at medium effort and one
-Quality Claude critic at high effort. They stay at two critics in deep mode unless the user explicitly
-approves extra cost; unavailable effort levels fall downward before they are allowed to rise.
+Cursor-led reviews stay at two critics: Efficient GPT + (Quality Claude or Quality Cursor). Keep that
+pairing in deep mode unless the user explicitly approves extra cost. Critic effort follows whatever
+the tooling or user already has configured for the selected model; do not invent or force an effort
+level the tooling cannot set.
 
 With the current published evidence, Efficient Cursor is expected to resolve to
 [Composer](https://cursor.com/docs/models/cursor-composer-2-5) when available. A stronger Cursor model
 such as [Grok](https://cursor.com/docs/models/grok-4-5) is considered for Quality Cursor only when the
 tooling exposes it, region and plan access allow it, and reliable evidence survives applicable
-benchmark caveats.
+benchmark caveats. Quality Cursor is also the preferred substitute when Quality Claude cannot be
+filled.
 
-[GLM](https://cursor.com/docs/models/glm-5-2) and
-[Kimi](https://cursor.com/docs/models/kimi-k2-5) support Cursor's agent tools and can therefore be the
-builder whose work is reviewed. They remain ineligible for critic and substitution lanes by policy,
-even if no other critic model is exposed.
+[GLM](https://cursor.com/docs/models/glm-5-2),
+[Kimi](https://cursor.com/docs/models/kimi-k2-5), and
+[Gemini](https://cursor.com/docs/models/gemini-3-1-pro) support Cursor's agent tools and can therefore
+be the builder whose work is reviewed. They remain ineligible for critic and substitution lanes by
+policy, even if no other critic model is exposed.
 
 ## Files
 

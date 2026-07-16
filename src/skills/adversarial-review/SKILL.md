@@ -14,16 +14,18 @@ actually satisfies the user's intent, project contracts, and risk constraints.
 `Model running this chat` means the builder or orchestrator model in use when the user requests the
 review. Role definitions and the runtime resolution procedure live under [Model routing](#model-routing).
 
-| Model running this chat | Quick/default critics                          | Ambiguous, high-risk, or deep critics          |
-| ----------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| Cursor model            | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
-| Quality GPT             | Efficient GPT + Quality Claude                 | Efficient GPT + Quality Claude                 |
-| Other GPT               | Quality GPT + Quality Claude                   | Quality GPT + Quality Claude                   |
-| Claude / Anthropic      | Efficient GPT + Efficient Cursor               | Quality GPT + Quality Cursor                   |
-| GLM / Kimi family       | Efficient GPT (medium) + Quality Claude (high) | Efficient GPT (medium) + Quality Claude (high) |
-| Other                   | Efficient GPT + Quality Claude                 | Quality GPT + Quality Claude                   |
+| Model running this chat | Quick/default critics                              | Ambiguous, high-risk, or deep critics              |
+| ----------------------- | -------------------------------------------------- | -------------------------------------------------- |
+| Cursor model            | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Quality GPT             | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Other GPT               | Quality GPT + (Quality Claude or Quality Cursor)   | Quality GPT + (Quality Claude or Quality Cursor)   |
+| Claude / Anthropic      | Efficient GPT + Efficient Cursor                   | Quality GPT + Quality Cursor                       |
+| GLM / Kimi family       | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Google / Gemini family  | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Other                   | Efficient GPT + (Quality Claude or Quality Cursor) | Quality GPT + (Quality Claude or Quality Cursor)   |
 
-For the visual flow and mode summary, see [README.md](README.md).
+`(A or B)` means prefer A when available; otherwise B. For the visual flow and mode summary, see
+[README.md](README.md).
 
 ## Core rule
 
@@ -216,17 +218,20 @@ is authoritative; a model appearing on a benchmark is not evidence that the user
   each family's best comparable benchmark configuration.
 - **Efficient GPT** — the GPT model family whose best comparable configuration is the cheapest
   Pareto-efficient option (no alternative is both cheaper and better) within three CursorBench score
-  points of Quality GPT. Apply the effort level from the routing table after selecting the family. If
-  exact score, cost, or slug mapping is unavailable, choose the cheaper near-top GPT family exposed by
-  the tooling and disclose that heuristic.
+  points of Quality GPT. If exact score, cost, or slug mapping is unavailable, choose the cheaper
+  near-top GPT family exposed by the tooling and disclose that heuristic. Critic effort follows
+  whatever the tooling or user already has configured for that model.
 - **Quality Claude** — the highest-scoring eligible Claude/Anthropic model exposed by the tooling.
-  Exclude Fable unless the user explicitly requests it.
+  Exclude Fable unless the user explicitly requests it. If unavailable, substitute Quality Cursor
+  before other heuristics and disclose the substitution. In the routing table this is written
+  `(Quality Claude or Quality Cursor)`.
 - **Quality Cursor** — the highest-scoring reliable eligible model in Cursor's first-party model pool.
+  Preferred substitute when Quality Claude cannot be filled.
 - **Efficient Cursor** — the cheapest eligible model on the Cursor first-party Pareto frontier
   (options where none is both cheaper and better). Exclude routers such as Auto because they do not
   provide a reproducible critic identity.
 - **Lead-only coding model** — a model family allowed as the builder/orchestrator but prohibited from
-  critic lanes. GLM and Kimi are lead-only families.
+  critic lanes. GLM, Kimi, and Google/Gemini are lead-only families.
 
 An eligible critic is exposed by the tooling, is not the exact model running this chat, satisfies the
 Fable gate, is not a lead-only coding model, and remains usable under the benchmark-caveat policy
@@ -252,26 +257,26 @@ below.
    GPT, cost efficiency for Efficient Cursor, and reliable capability for Quality Cursor.
 6. If a preferred role cannot be filled, substitute without asking: avoid exact-model self-review,
    preserve the Fable and lead-only gates, prefer provider diversity, and disclose the heuristic
-   substitution or reduced independence. Run fewer lanes only when no credible replacement exists.
+   substitution or reduced independence. When Quality Claude is unavailable, substitute Quality
+   Cursor before other heuristics. Run fewer lanes only when no credible replacement exists.
 
 ### Routing constraints and provenance
 
-- A Cursor lead always routes to exactly two critics: Efficient GPT at medium effort + Quality Claude
-  at high effort. Keep this cost-conscious pairing even for deep reviews; apply deep-review lenses to
-  these lanes instead of adding a third critic unless the user explicitly approves the extra cost.
-- Allow at most one high-reasoning critic in a Cursor-led review. Never silently raise either lane's
-  effort. If the requested effort is unavailable, prefer the nearest lower effort before considering a
-  higher one.
-- GLM and Kimi may appear as the model running this chat but must never be selected as critics or
-  substitutions. If no permitted critic is available, run fewer or no critic lanes and record the
-  limitation; do not relax this gate.
+- A Cursor lead always routes to exactly two critics: Efficient GPT + (Quality Claude or Quality
+  Cursor). Keep this cost-conscious pairing even for deep reviews; apply deep-review lenses to these
+  lanes instead of adding a third critic unless the user explicitly approves the extra cost.
+- Critic effort follows whatever the tooling or user already has configured for the selected model.
+  Do not invent or force an effort level the tooling cannot set.
+- GLM, Kimi, and Google/Gemini may appear as the model running this chat but must never be selected
+  as critics or substitutions. If no permitted critic is available, run fewer or no critic lanes and
+  record the limitation; do not relax this gate.
 - A distinct GPT reasoning model may review a GPT lead. Mark that lane as `partial independence`, pair
   it with a non-GPT critic whenever two lanes run, and never use an all-GPT committee.
 - The two `quick` skeptics must not both be GPT models.
 - Never select Fable as a critic unless the user explicitly requests it. Benchmark rank does not
   override this gate.
 - Keep model names and versions out of the policy table. Under **Reviewers** in the verdict, record
-  each resolved role, concrete selected model, and effort level, plus partial-independence or
+  each resolved role and concrete selected model, plus effort when known, and partial-independence or
   heuristic-substitution notes when applicable.
 
 ## Verdict standard
