@@ -18,10 +18,10 @@ review automations; it does not replace them.
   template, when present, without demanding exhaustive PR prose.
 - **Verdict** — **❌ FAIL**, **⚠️ PASS WITH RISKS**, or **✅ PASS**, with provenance and review limits
   recorded. See `references/verdict-format.md`.
-- **Remediation** — strict sequence: review → main-chat report → choices. In one assistant turn,
-  post the full report in the message body; when findings exist, numbered inline remediation choices
-  below it in fixed order: Apply accepted, Apply all, Do nothing (omit hidden options). See
-  `SKILL.md` steps 6–7.
+- **Remediation** — strict sequence: review → main-chat report → choices. The posted
+  `## 📊 Findings` lists only lead-accepted items. In one assistant turn, post the full report in the
+  message body; when findings exist, numbered inline remediation choices below it: Apply findings,
+  Do nothing. See `SKILL.md` steps 6–7.
 
 ## Flow
 
@@ -61,11 +61,11 @@ flowchart TD
     CriticB --> Join
     CriticC --> Join
     Join --> Limit["Record timeouts, empty output,<br/>or unavailable families as review limits"]
-    Limit --> Synthesize["Synthesize findings<br/>dedupe, reject overreach, accept real issues"]
+    Limit --> Synthesize["Synthesize findings<br/>dedupe, reject overreach,<br/>keep only accepted issues"]
 
     Synthesize --> Verdict{"Material blocker?"}
-    Verdict -->|yes| Fail["❌ FAIL<br/>synthesize full verdict report"]
-    Verdict -->|no blocker, meaningful<br/>risks or limits| Risk["⚠️ PASS WITH RISKS<br/>show findings, limits, provenance"]
+    Verdict -->|yes| Fail["❌ FAIL<br/>accepted findings only"]
+    Verdict -->|no blocker, meaningful<br/>risks or limits| Risk["⚠️ PASS WITH RISKS<br/>accepted findings, limits, provenance"]
     Verdict -->|no| Pass["✅ PASS<br/>show provenance and limits"]
 
     Fail --> PostReport["Post full report in assistant<br/>message body — step 6"]
@@ -74,23 +74,11 @@ flowchart TD
 
     PostReport --> HasFindings{Findings in verdict?}
     HasFindings -->|no| Done[End]
-    HasFindings -->|yes| InlineChoices["Numbered inline choices under report<br/>fixed order: SKILL.md step 7"]
-    InlineChoices --> AcceptedCheck{Accepted count?}
+    HasFindings -->|yes| InlineChoices["Apply findings (Recommended), Do nothing"]
+    InlineChoices --> ApplyFindings[Apply findings]
+    InlineChoices --> DoNothing[Do nothing]
 
-    AcceptedCheck -->|zero| ChoiceOverride["Apply all, Do nothing"]
-    AcceptedCheck -->|partial| ChoiceThree["Apply accepted, Apply all, Do nothing"]
-    AcceptedCheck -->|all| ChoiceTwo["Apply accepted or Do nothing"]
-
-    ChoiceOverride --> ApplyAll[Apply all]
-    ChoiceOverride --> DoNothing[Do nothing]
-    ChoiceThree --> ApplyAcc[Apply accepted]
-    ChoiceThree --> ApplyAll
-    ChoiceThree --> DoNothing
-    ChoiceTwo --> ApplyAcc
-    ChoiceTwo --> DoNothing
-
-    ApplyAcc --> ReReview[Optional focused re-review]
-    ApplyAll --> ReReview
+    ApplyFindings --> ReReview[Optional focused re-review]
     DoNothing --> Done
     ReReview --> Done
 ```
@@ -104,11 +92,15 @@ flowchart TD
 | `deep`     | ≤ 3     | Large, high-risk, security-sensitive, or ambiguous changes only. |
 
 Prefer provider diversity over lane count. Distinct GPT reasoning models may review each other when
-paired with a non-GPT critic and reported as partial independence.
+paired with a non-GPT critic and reported as partial independence. A distinct Cursor-pool critic on a
+Cursor lead is also reported as partial independence.
 
 ## Model routing
 
-| Model running this chat | Quick/default critics                              | Ambiguous, high-risk, or deep critics              |
+**Lead** means the model or models that produced the reviewed artifact — not merely the model handling
+the current review request.
+
+| Lead                    | Quick/default critics                              | Ambiguous, high-risk, or deep critics              |
 | ----------------------- | -------------------------------------------------- | -------------------------------------------------- |
 | Cursor model            | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
 | Quality GPT             | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
@@ -116,6 +108,7 @@ paired with a non-GPT critic and reported as partial independence.
 | Claude / Anthropic      | Efficient GPT + Efficient Cursor                   | Quality GPT + Quality Cursor                       |
 | GLM / Kimi family       | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
 | Google / Gemini family  | Efficient GPT + (Quality Claude or Quality Cursor) | Efficient GPT + (Quality Claude or Quality Cursor) |
+| Dynamic or unknown lead | Pinned cross-provider critics (dedicated rule)     | Pinned cross-provider critics (dedicated rule)     |
 | Other                   | Efficient GPT + (Quality Claude or Quality Cursor) | Quality GPT + (Quality Claude or Quality Cursor)   |
 
 `(A or B)` means prefer A when available; otherwise B.
@@ -128,10 +121,18 @@ paired with a non-GPT critic and reported as partial independence.
   user explicitly requests it. In the table, `(Quality Claude or Quality Cursor)` is the fallback.
 - **Quality Cursor** is the strongest reliable eligible model in Cursor's first-party model pool.
 - **Efficient Cursor** is the cheapest eligible model on the Cursor first-party Pareto frontier
-  (options where none is both cheaper and better). Routers such as Auto are excluded because they do
-  not provide reproducible critic identity.
-- **Lead-only coding model** can run the chat being reviewed but cannot serve as a critic. GLM, Kimi,
-  and Google/Gemini are lead-only families.
+  (options where none is both cheaper and better).
+- **Lead-only coding model** can be the artifact builder but cannot serve as a critic. GLM, Kimi, and
+  Google/Gemini are lead-only families.
+
+Critics must have a concrete reproducible model identity. Routers, `inherit`, and other dynamic
+selections are ineligible for every critic role. For a dynamic or unknown lead, keep the step-3
+reviewer count and lenses; pin critics from different eligible provider families via the dedicated
+rule in `SKILL.md`. Exclude known builders; prefer critics outside a known selector pool; if the pool
+exhausts eligible options or builder identity cannot be proven, fall back to pinned cross-provider
+critics with `limited independence` and a meaningful review-limit disclosure. In `deep`, use up to
+the chosen count only when sufficiently distinct pinned critics are available; otherwise run fewer
+lanes and disclose reduced coverage.
 
 The tooling's exposed models are authoritative for availability. CursorBench is routing evidence for
 agentic coding capability, not a direct adversarial-review benchmark; published contamination and
@@ -139,16 +140,22 @@ comparability caveats constrain automatic selection. See `SKILL.md` for resoluti
 verdict-provenance rules.
 
 Cursor-led reviews stay at two critics: Efficient GPT + (Quality Claude or Quality Cursor). Keep that
-pairing in deep mode unless the user explicitly approves extra cost. Critic effort follows whatever
-the tooling or user already has configured for the selected model; do not invent or force an effort
-level the tooling cannot set.
+pairing in deep mode unless the user explicitly approves extra cost. If Quality Claude is unavailable
+and Quality Cursor equals a known concrete lead/builder model, use the next-best eligible Cursor
+first-party model; if none exists, skip the second lane and continue with Efficient GPT alone. Stay
+in mode (including `quick`): record the shortfall under Review limits, emit a single-lane Reviewers
+line, and treat the missing lane as a meaningful review limit. Critic effort follows whatever the
+tooling or user already has configured for the selected model; do not invent or force an effort level
+the tooling cannot set. Record the concrete critic model tooling actually reports; disclose unverified
+fallbacks under review limits.
 
 With the current published evidence, Efficient Cursor is expected to resolve to
 [Composer](https://cursor.com/docs/models/cursor-composer-2-5) when available. A stronger Cursor model
 such as [Grok](https://cursor.com/docs/models/grok-4-5) is considered for Quality Cursor only when the
 tooling exposes it, region and plan access allow it, and reliable evidence survives applicable
 benchmark caveats. Quality Cursor is also the preferred substitute when Quality Claude cannot be
-filled.
+filled; mark that lane `partial independence` (and `heuristic substitution`) when a distinct
+Cursor-pool model reviews a Cursor lead.
 
 [GLM](https://cursor.com/docs/models/glm-5-2),
 [Kimi](https://cursor.com/docs/models/kimi-k2-5), and
