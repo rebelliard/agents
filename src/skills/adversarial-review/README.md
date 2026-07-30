@@ -113,12 +113,15 @@ the current review request.
 
 `(A or B)` means prefer A when available; otherwise B.
 
-- **Quality GPT** is the strongest eligible GPT model family, comparing each family's best benchmark
-  configuration.
+- **Quality GPT** is the strongest eligible GPT model. Within the current named GPT generation, tier
+  order is authoritative: `Sol > Terra > Luna`. Reasoning effort only breaks ties within a tier, so
+  an `xhigh` Luna does not outrank an eligible Sol or Terra.
 - **Efficient GPT** is the GPT family whose best configuration is the cheapest Pareto-efficient option
   (no alternative is both cheaper and better) within three CursorBench score points of Quality GPT.
-- **Quality Claude** is the strongest eligible Claude/Anthropic model. Fable is excluded unless the
-  user explicitly requests it. In the table, `(Quality Claude or Quality Cursor)` is the fallback.
+- **Quality Claude** is the strongest eligible Claude/Anthropic model. Tier order is authoritative:
+  `Opus > Sonnet > Haiku`, with reasoning effort compared only within a tier. Fable is excluded
+  unless the user explicitly requests it. In the table, `(Quality Claude or Quality Cursor)` is the
+  fallback.
 - **Quality Cursor** is the strongest reliable eligible model in Cursor's first-party model pool.
 - **Efficient Cursor** is the cheapest eligible model on the Cursor first-party Pareto frontier
   (options where none is both cheaper and better).

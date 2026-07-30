@@ -5,7 +5,7 @@
     {
       "title": "Code Review",
       "description": "Skills for skeptical review of agent-written or high-risk code changes.",
-      "skills": ["adversarial-review"]
+      "skills": ["adversarial-review", "pr-review-comments"]
     },
     {
       "title": "Orchestration",

@@ -199,16 +199,20 @@ is authoritative; a model appearing on a benchmark is not evidence that the user
 
 ### Roles
 
-- **Quality GPT** — the highest-scoring eligible GPT model family exposed by the tooling, based on
-  each family's best comparable benchmark configuration.
+- **Quality GPT** — the strongest eligible GPT model exposed by the tooling. Within the current named
+  GPT generation, tier order is authoritative: `Sol > Terra > Luna`. Rank tier before
+  reasoning-effort suffix, so an `xhigh` Luna never outranks an eligible Sol or Terra. Compare effort
+  only between variants in the same tier. Use benchmark evidence only when this known tier order does
+  not resolve the candidates.
 - **Efficient GPT** — the GPT model family whose best comparable configuration is the cheapest
   Pareto-efficient option (no alternative is both cheaper and better) within three CursorBench score
   points of Quality GPT. If exact score, cost, or slug mapping is unavailable, choose the cheaper
   near-top GPT family exposed by the tooling and disclose that heuristic. Critic effort follows
   whatever the tooling or user already has configured for that model.
-- **Quality Claude** — the highest-scoring eligible Claude/Anthropic model exposed by the tooling.
-  Exclude Fable unless the user explicitly requests it. If unavailable, substitute Quality Cursor
-  before other heuristics and disclose the substitution. In the routing table this is written
+- **Quality Claude** — the strongest eligible Claude/Anthropic model exposed by the tooling. Tier
+  order is authoritative: `Opus > Sonnet > Haiku`; compare reasoning effort only within the same
+  tier. Exclude Fable unless the user explicitly requests it. If unavailable, substitute Quality
+  Cursor before other heuristics and disclose the substitution. In the routing table this is written
   `(Quality Claude or Quality Cursor)`.
 - **Quality Cursor** — the highest-scoring reliable eligible model in Cursor's first-party model pool.
   Preferred substitute when Quality Claude cannot be filled.
@@ -236,20 +240,23 @@ otherwise not a known concrete model or set of concrete models that produced the
    instead of pretending the underlying lead family is known from the current chat model.
 3. Inspect the concrete model slugs the subagent tooling exposes. Do not invent or select unavailable
    models. Prefer pinned concrete critic identities over dynamic selections.
-4. Resolve the table from known, current evidence. If the choice is unclear and web access is
-   available, fetch the current official [Cursor evals](https://cursor.com/evals), intersect its
+4. Apply the known quality-tier orders before comparing effort or benchmark scores:
+   `Sol > Terra > Luna` for the current named GPT generation and `Opus > Sonnet > Haiku` for Claude.
+   A higher effort suffix never promotes a lower tier over a higher one.
+5. Resolve remaining choices from known, current evidence. If the choice is unclear and web access
+   is available, fetch the current official [Cursor evals](https://cursor.com/evals), intersect its
    entries with exposed models, consult the official
    [model and pricing documentation](https://cursor.com/docs/models-and-pricing), and calculate the
    roles above instead of guessing from remembered model names.
-5. Treat CursorBench as evidence of agentic coding capability, not proof of reviewer-specific
+6. Treat CursorBench as evidence of agentic coding capability, not proof of reviewer-specific
    superiority. Do not automatically rank a contaminated or non-comparable score above an uncaveated
    candidate. Use a caveated model only when another reliable signal supports it or no credible
    uncaveated replacement exists, and record the reason under review limits. In particular, a
    caveated Cursor model cannot become Quality Cursor solely from that score.
-6. If live evals or exact mappings are unavailable, resolve the generic roles from the exposed model
+7. If live evals or exact mappings are unavailable, resolve the generic roles from the exposed model
    catalog. Preserve the policy intent: capability for Quality roles, near-top value for Efficient
    GPT, cost efficiency for Efficient Cursor, and reliable capability for Quality Cursor.
-7. If a preferred role cannot be filled, substitute without asking: avoid exact-model self-review
+8. If a preferred role cannot be filled, substitute without asking: avoid exact-model self-review
    against known builders, preserve the Fable and lead-only gates, prefer provider diversity, and
    disclose the heuristic substitution or reduced independence. When Quality Claude is unavailable,
    substitute Quality Cursor before other heuristics. If Quality Cursor resolves to a known concrete
