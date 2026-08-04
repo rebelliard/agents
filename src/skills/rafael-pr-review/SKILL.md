@@ -15,11 +15,9 @@ disable-model-invocation: true
 Draft Rafael's human PR review for someone else's pull request. Chat
 is the default deliverable. Post to GitHub only when asked.
 
-This skill complements — it does not replace:
-
-- `adversarial-review` — cold multi-critic gate for agent-written or
-  high-risk changes
-- `pr-review-comments` — triage and address feedback already on a PR
+This skill drafts Rafael's outbound human review. It does not replace
+cold multi-critic gates for agent-written or high-risk changes, or
+workflows that triage and address feedback already on a PR.
 
 ## Workflow
 
