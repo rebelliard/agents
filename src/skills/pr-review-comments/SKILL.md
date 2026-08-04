@@ -1,6 +1,6 @@
 ---
 name: pr-review-comments
-description: Triage and address GitHub pull request feedback — formal review threads and human conversation comments that function as reviews (for example Ellinor/esvalberg top-level PR comments). Decide which suggestions are worth acting on, make focused fixes, commit and push accepted changes, then reply by default. Prefix replies with taxonomy emojis (👍🏽 😇 🆗 📌 🔜 ❓ 🛡️ 📡). In GitHub replies, link named code symbols to remote blob URLs with line numbers. Never post GitHub replies about uncommitted or unpushed work — commit and push first, then reply with a verified commit link. On very high-reasoning hosts, delegate mechanical fetch/fix/post work to a Grok subagent. Use when the user provides a PR link and asks to review comments, address review feedback, respond inline, resolve threads, or decide which comments are worth acting on. Only skip posting GitHub replies when the user explicitly asks not to post, comment, or reply.
+description: Triage and address GitHub pull request feedback — formal review threads and human conversation comments that function as reviews (for example Ellinor/esvalberg top-level PR comments). Decide which suggestions are worth acting on, make focused fixes, commit and push accepted changes, then reply by default. Prefix non-Aikido replies with taxonomy emojis (👍🏽 😇 🆗 📌 🔜 ❓). Aikido `@AikidoSec` replies must start with `@AikidoSec` and must not use any emoji prefix. In GitHub replies, link named code symbols to remote blob URLs with line numbers. Never post GitHub replies about uncommitted or unpushed work — commit and push first, then reply with a verified commit link. On very high-reasoning hosts, delegate mechanical fetch/fix/post work to a Grok subagent. Use when the user provides a PR link and asks to review comments, address review feedback, respond inline, resolve threads, or decide which comments are worth acting on. Only skip posting GitHub replies when the user explicitly asks not to post, comment, or reply.
 ---
 
 # PR Review Comments
@@ -105,7 +105,7 @@ Anti-slop for replies: no praise padding, no chatbot preambles, no stacked hedgi
 
 ### Reply taxonomy (emoji prefixes)
 
-Every GitHub reply starts with a **single emoji prefix** then **exactly one space**.
+**Non-Aikido replies** start with a **single emoji prefix** then **exactly one space**.
 
 | Prefix | When                                                                                                       | Typical opener after the emoji                          |
 | ------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
@@ -114,18 +114,22 @@ Every GitHub reply starts with a **single emoji prefix** then **exactly one spac
 | 🆗     | Tip already has the fix                                                                                    | `Already handled/covered on the current branch. …`      |
 | 📌     | Valid polish, not done in this PR                                                                          | `Accepted for this slice. …`                            |
 | 🔜     | Deferred to a later stack / OpenSpec PR                                                                    | `Keeping … for this PR only.` / handoff to `#N`         |
-| 🛡️     | Aikido ignore                                                                                              | `@AikidoSec ignore: …` then rationale                   |
-| 📡     | Aikido feedback (often followed by Fixed in)                                                               | `@AikidoSec feedback: …`                                |
 | ❓     | Need reviewer/user input                                                                                   | Short clarifying question                               |
+
+**Aikido replies (hard rule):** the reply body **must start with** `@AikidoSec` — **no emoji before it**, including not 🛡️ or 📡. Any leading character before `@AikidoSec` breaks Aikido's trigger parsing.
+
+| Directive              | When                                                                          | Body shape                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `@AikidoSec feedback:` | Finding is real but diagnosis/severity/remedy should improve for future scans | `@AikidoSec feedback: <general rule>` then optional blank line + `Fixed in …` |
+| `@AikidoSec ignore:`   | Finding does not apply                                                        | `@AikidoSec ignore: <specific reason>` then optional human rationale          |
 
 Rules:
 
-- Exactly one taxonomy emoji, then one space, then the rest of the body.
-- **Critical for Aikido:** write `🛡️ @AikidoSec ignore: …` / `📡 @AikidoSec feedback: …` — never `🛡️@AikidoSec` (no space). The space keeps their triggers intact.
-- Do not stack extra decorative emoji after the prefix.
-- Aikido feedback + Fixed in: use **📡** as the prefix; directive first, blank line, then `Fixed in …` in the **same** comment (prefer one comment unless the user asks otherwise).
+- Non-Aikido: exactly one taxonomy emoji, then one space, then the rest of the body. Do not stack extra decorative emoji after the prefix.
+- **Aikido: first characters of the body are `@AikidoSec`.** Never prefix with emoji, markdown, or whitespace-only lines before the directive.
+- Aikido feedback/ignore + Fixed in: directive first, blank line, then `Fixed in …` in the **same** comment (prefer one comment unless the user asks otherwise).
 - Non-Aikido fix only: use **👍🏽**.
-- Chat completion summaries may mirror the same emoji when listing threads.
+- Chat completion summaries may mirror taxonomy emojis for non-Aikido threads; for Aikido, say `feedback` / `ignore` without inventing a prefix emoji.
 
 Preferred openers:
 
@@ -136,8 +140,8 @@ Preferred openers:
 | Tip already has the fix          | `🆗 Already handled on the current branch. <evidence>. Leaving this thread as-is.`        |
 | Valid polish, out of scope       | `📌 Accepted for this slice. <why not now>; further X can be a follow-up.`                |
 | Stack/OpenSpec owns it later     | `🔜 … for this PR only. Later … in [#N](…).`                                              |
-| Aikido ignore                    | `🛡️ @AikidoSec ignore: <reason>`                                                          |
-| Aikido feedback (+ optional fix) | `📡 @AikidoSec feedback: <rule>` then optional `Fixed in …`                               |
+| Aikido ignore                    | `@AikidoSec ignore: <reason>`                                                             |
+| Aikido feedback (+ optional fix) | `@AikidoSec feedback: <rule>` then optional blank line + `Fixed in …`                     |
 | Need input                       | `❓ <question>`                                                                           |
 
 Commit link formatting:
@@ -170,7 +174,7 @@ Example:
 - Every code change maps directly to a review comment.
 - Edited code has scoped validation or an explicit validation caveat.
 - Every accepted code change is committed and pushed to the PR branch before the related reply is posted.
-- Every posted reply is concise, matches the decision, and uses the correct emoji prefix (with a space after it).
+- Every posted reply is concise, matches the decision, and uses the correct reply shape (taxonomy emoji prefix for non-Aikido; `@AikidoSec …` with **no** emoji for Aikido).
 - Replies that name code symbols include GitHub blob+line links for those symbols (see **Link code symbols in replies**).
 - Dismissals that defer work to later stack PRs name that handoff explicitly and link the follow-up PR(s) when known.
 - Replies for implemented fixes include a verified GitHub commit link on the PR branch. Never post on GitHub about local, uncommitted, or unpushed work.
@@ -216,12 +220,13 @@ Example:
 
 5. Reply:
    - Reply to every in-scope comment after the decision is made. Posting replies is the default behavior for this skill; skip posting only when the user explicitly says not to post, not to comment, not to reply, or to keep everything local/in chat.
-   - Prefix every reply with the correct taxonomy emoji and one space (see **Reply taxonomy**).
+   - Prefix **non-Aikido** replies with the correct taxonomy emoji and one space (see **Reply taxonomy**).
    - **Link code symbols** (functions, types, hooks, constants, files) to remote blob+line URLs per **Link code symbols in replies**. Resolve SHA and line numbers before posting.
    - **Dismissals and no-change decisions:** reply on GitHub immediately.
    - Only when the original comment is authored by the Aikido bot (currently `aikido-pr-checks`, as in the Aikido link), use its learning directives when meaningful. Treat these directives as machine-readable training payloads, not resolution notes:
-     - Use `📡 @AikidoSec feedback: <general rule>` only when the finding identifies a real issue but its diagnosis, severity, or suggested remedy should be improved in future reviews. The payload must be a standalone, reusable rule for similar code; do not include PR-specific facts, code identifiers, the implementation, validation, or a commit link.
-     - Use `🛡️ @AikidoSec ignore: <specific reason>` when the finding does not apply. State the concrete fact that invalidates the finding.
+     - **The reply body must start with `@AikidoSec`.** Do not put any emoji (including 📡 / 🛡️), markdown, or other text before the directive — Aikido's parser will not fire.
+     - Use `@AikidoSec feedback: <general rule>` only when the finding identifies a real issue but its diagnosis, severity, or suggested remedy should be improved in future reviews. The payload must be a standalone, reusable rule for similar code; do not include PR-specific facts, code identifiers, the implementation, validation, or a commit link.
+     - Use `@AikidoSec ignore: <specific reason>` when the finding does not apply. State the concrete fact that invalidates the finding.
      - If a real fix was made, put `Fixed in [abc1234](...)` in the **same** comment after a blank line (do not mix it into the directive line). Prefer one comment unless the user asks otherwise.
      - Do not use either directive for other reviewers.
    - **Implemented fixes:** reply on GitHub only after the fix is committed, pushed, and the commit link is verified on GitHub. Until then, leave the item open and report status in chat.

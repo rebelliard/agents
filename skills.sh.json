@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "Code Review",
-      "description": "Skills for skeptical review of agent-written or high-risk code changes.",
+      "description": "Skills for skeptical review of agent-written or high-risk code changes, and addressing review feedback.",
       "skills": ["adversarial-review", "pr-review-comments"]
     },
     {
