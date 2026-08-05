@@ -36,6 +36,9 @@ workflows that triage and address feedback already on a PR.
      **Suggested change**
    - Every finding **must** include a collapsible
      `✨ Suggested AI prompt` details block (label verbatim)
+   - Build each prompt block with
+     [`scripts/wrap-suggested-ai-prompt.ts`](scripts/wrap-suggested-ai-prompt.ts)
+     `--build` when possible; follow output-format.md for custom bodies
 4. **Append the private footer.** After a `---` and
    `## For you (do not post)`, give Rafael exactly one of
    `🟢 **Approve**` or `🔴 **Do not approve**` plus a short paragraph.
@@ -52,6 +55,10 @@ workflows that triage and address feedback already on a PR.
   footer.
 - Suggested AI prompts must be copy-pasteable: PR URL, problem
   bullets, numbered Do steps, scoped validation, keep-minimal.
+- Suggested AI prompt bodies soft-wrap at 80 columns with hanging
+  list indents. Use `- Branch:` with a backticked branch name, format
+  code expressions as inline code, and choose a fence that cannot be
+  closed by backticks inside the body.
 - Prefer GitHub blob links with line numbers for evidence.
 - Allowed HTML in posted bodies: `<details>`, `<summary>`, `<sub>`,
   `<br />` only.
@@ -81,6 +88,13 @@ When posting:
 
 Prefer `gh api` to create the review in one call (summary + inlines).
 Verify the review landed. Paste the review URL in chat.
+
+## Canonical skill tree
+
+- `SKILL.md`
+- `references/output-format.md`
+- `references/review-heuristics.md`
+- `scripts/wrap-suggested-ai-prompt.ts`
 
 ## Example trigger
 

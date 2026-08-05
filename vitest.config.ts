@@ -4,7 +4,10 @@ export default defineConfig({
   test: {
     environment: "node",
     exclude: ["dist/**", "node_modules/**"],
-    include: ["src/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+    include: [
+      "src/**/*.{test,spec}.?(c|m)[jt]s?(x)",
+      "tests/**/*.{test,spec}.?(c|m)[jt]s?(x)",
+    ],
     restoreMocks: true,
   },
 });

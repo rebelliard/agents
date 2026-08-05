@@ -31,7 +31,8 @@ Blunt take: `[one or two sentences]`
 <summary>✨ Suggested AI prompt</summary>
 
 ```text
-On PR {pr_url} (branch {branch}), fix {short problem}.
+On PR {pr_url}, fix {short problem}.
+- Branch: `{branch}`
 
 Problem:
 - {bullet}
@@ -107,7 +108,8 @@ block. Use this label **verbatim** in `<summary>`.
 <summary>✨ Suggested AI prompt</summary>
 
 ```text
-On PR {pr_url} (branch {branch}), fix {short problem}.
+On PR {pr_url}, fix {short problem}.
+- Branch: `{branch}`
 
 Problem:
 - {bullet}
@@ -140,11 +142,54 @@ Allowed HTML in posted bodies: `<details>`, `<summary>`, `<sub>`,
 
 The prompt inside the fence must be copy-pasteable for another agent:
 
-1. Name the PR URL and branch.
+1. Start with `On PR {pr_url}, {goal}.`, then put the head branch on
+   its own bullet: `- Branch:` followed by the backticked branch name.
+   Use capital `B`; never bury the branch in a parenthetical opener.
 2. State the problem in short bullets with file/symbol cues.
 3. Number concrete **Do** steps (fix + tests + scoped validation).
 4. Say keep the fix minimal / do not expand scope.
 5. Stay severity-proportional: Low/Nit prompts must not sound blocking.
+6. Wrap code expressions in backticks, including identifiers,
+   literals, expressions, commands, and repo-relative paths. When an
+   expression already contains backticks, use `formatInlineCode()`
+   rather than creating a broken single-backtick span.
+
+## AI prompt preparation
+
+Use
+[`scripts/wrap-suggested-ai-prompt.ts`](../scripts/wrap-suggested-ai-prompt.ts)
+to make prompt blocks deterministic. Prefer its `--build` mode with
+the validated finding's `postPath`, `postLine`, `suggestedChange`, and
+`evidence`; include `prUrl` and `headRef` when known:
+
+From the skill root:
+
+```bash
+node scripts/wrap-suggested-ai-prompt.ts --build <<'EOF'
+{
+  "postPath": "{path}",
+  "postLine": {line},
+  "suggestedChange": "{suggested change}",
+  "evidence": "{evidence}",
+  "prUrl": "{pr_url}",
+  "headRef": "{branch}"
+}
+EOF
+```
+
+Use the emitted `<details>…</details>` block unchanged. It applies the
+`prepareSuggestedAiPromptText()` pipeline, which normalizes the opener
+and branch, then soft-wraps at 80 columns. Numbered and bullet list
+continuations receive a hanging indent equal to their marker width.
+Blank lines and leading indentation remain intact; long URLs, paths,
+and inline code spans stay unsplit.
+
+For a custom body, assemble the inner text and pass it through the
+script without `--build`. If constructing the block in TypeScript,
+call `prepareSuggestedAiPromptText()` and select the outer fence with
+`choosePromptBodyFence()` so an embedded triple-backtick run cannot
+close the prompt early. Use `formatInlineCode()` for dynamic code
+expressions, especially values that already contain backticks.
 
 ## Private footer (chat only)
 
