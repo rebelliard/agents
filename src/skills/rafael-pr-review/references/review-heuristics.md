@@ -64,5 +64,6 @@ Look for these when the diff touches related surfaces:
   (claim → independent measurement → verdict) before or instead of
   nitpicking implementation taste.
 - **Approve with follow-ups** — Medium/Low findings can ship with a
-  clear blunt take; put the personal approve call in the private
-  footer, not as a fake clean pass.
+  clear take line (`⚠️` / `👍` per output-format.md); put the
+  personal approve call in the private footer, not as a fake clean
+  pass.

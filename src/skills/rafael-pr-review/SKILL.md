@@ -30,8 +30,12 @@ workflows that triage and address feedback already on a PR.
    🔵 Nit.
 3. **Draft the postable review in chat.** Follow
    [output-format.md](references/output-format.md) exactly:
-   - Summary: `**PR Review**` + severity counts + blunt take +
-     `Reviewed on` commit subline
+   - Summary: `**PR Review**` + severity counts + take line
+     (`{take_emoji}` + one or two sentences; no `Blunt take:` /
+     `Summary:` label) + `Reviewed on` commit subline
+   - Resolve `{take_emoji}` from the deterministic table in
+     output-format.md (severity counts, volume thresholds,
+     smoke/claim fail signals)
    - One finding block per issue with **Impact**, **Evidence**,
      **Suggested change**
    - Every finding **must** include a collapsible

@@ -13,7 +13,7 @@ text after stripping the private footer.
 - 🟢 N Low
 - 🔵 N Nit
 
-Blunt take: `[one or two sentences]`
+{take_emoji} `[one or two sentences]`
 
 <sub>Reviewed on: [{sha7}]({commit_url})</sub>
 
@@ -44,7 +44,7 @@ Do:
 3. Add/adjust tests: {what to assert}
 4. Run scoped validation: {pnpm --filter … or equivalent}
 
-Keep the fix minimal. Do not expand scope.
+💡 Keep the fix minimal. Do not expand scope.
 ```
 
 </details>
@@ -65,6 +65,10 @@ are none (clean review).
 
 `header_emoji`: `📝` when posting findings; empty when clean.
 
+Do **not** label the take (`Blunt take:`, `Summary:`, etc.). The
+severity bullets already frame it. Lead the take line with
+`{take_emoji}` only (see **Take emoji** below).
+
 ## Review summary body (GitHub `body`)
 
 ```markdown
@@ -75,22 +79,91 @@ are none (clean review).
 - 🟢 N Low
 - 🔵 N Nit
 
-Blunt take: `[one or two sentences]`
+{take_emoji} `[one or two sentences]`
 
 <sub>Reviewed on: [{sha7}]({commit_url})</sub>
 ```
 
-When there are no findings:
+When there are no findings and you still want a one-liner:
+
+```markdown
+**PR Review**
+
+- No comments.
+
+{take_emoji} `[optional one-liner]`
+
+<sub>Reviewed on: [{sha7}]({commit_url})</sub>
+```
+
+When there are no findings and no one-liner, omit the take line and
+keep the emoji on the bullet:
 
 ```markdown
 **PR Review**
 
 - No comments. 😊
 
-Blunt take: `[optional one-liner]`
-
 <sub>Reviewed on: [{sha7}]({commit_url})</sub>
 ```
+
+## Take emoji
+
+Compute `{take_emoji}` from the signals below. First matching rule
+wins. Do not invent other emojis. Do not use the private footer
+(`🟢 Approve` / `🔴 Do not approve`) as a signal — that section is
+chat-only and must not drive the posted take.
+
+### Signals
+
+| Signal              | How to compute                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `high_count`        | Count of 🔴 High findings                                                              |
+| `medium_count`      | Count of 🟡 Medium findings                                                            |
+| `low_count`         | Count of 🟢 Low findings                                                               |
+| `nit_count`         | Count of 🔵 Nit findings                                                               |
+| `finding_count`     | `high_count + medium_count + low_count + nit_count`                                    |
+| `unplaced_count`    | Findings folded under `### Unplaced findings`                                          |
+| `commentable_count` | `finding_count - unplaced_count`                                                       |
+| `smoke_fail`        | Smoke-QA appendix present **and** any **Tested** row Result does not start with `Pass` |
+| `claim_fail`        | Metric/perf claim table present **and** any row Verdict is not a pass/confirmed match  |
+
+`unplaced_count` and `commentable_count` do not pick an emoji on
+their own — unplaced findings still count in the severity tallies.
+Mention placement gaps in the take prose when relevant.
+
+### Decision table (first match wins)
+
+| #   | Condition                                    | Emoji | Meaning                                                 |
+| --- | -------------------------------------------- | ----- | ------------------------------------------------------- |
+| 1   | `high_count >= 1`                            | 🚨    | Blocking / correctness risk                             |
+| 2   | `medium_count >= 3`                          | 🚧    | Several medium issues                                   |
+| 3   | `medium_count >= 1`                          | ⚠️    | Needs attention; often shippable with follow-ups        |
+| 4   | `low_count >= 3`                             | 🔧    | Several polish / guardrail items                        |
+| 5   | `low_count >= 1`                             | 👍    | Light polish only                                       |
+| 6   | `nit_count >= 1`                             | ✨    | Nits only                                               |
+| 7   | `smoke_fail`                                 | 🧪    | Smoke/visual QA failed (no severity findings)           |
+| 8   | `claim_fail`                                 | 📊    | Sold metrics/claims did not hold (no severity findings) |
+| 9   | else (`finding_count == 0`, no fail signals) | 😊    | Clean                                                   |
+
+Reserved elsewhere (never use as `{take_emoji}`):
+
+- `📝` — `header_emoji` only when the review has findings
+- `🟢` / `🔴` — private approve footer only
+
+### Examples
+
+| Counts / signals     | Take line                                              |
+| -------------------- | ------------------------------------------------------ |
+| H1                   | `🚨 Dual-write can clear state for existing clients.`  |
+| M2                   | `⚠️ Two medium cache issues; ship after those land.`   |
+| M3+                  | `🚧 Several medium gaps; I would not merge as-is.`     |
+| L1, N2               | `👍 Small guardrail gap; nits optional.`               |
+| L3+                  | `🔧 A handful of low-priority cleanups worth landing.` |
+| N1 only              | `✨ Naming nit only.`                                  |
+| clean                | `😊 Looks good — no comments.`                         |
+| clean + `smoke_fail` | `🧪 Happy path passes; times-up dwell still flakes.`   |
+| clean + `claim_fail` | `📊 Bundle claim does not match a fresh build.`        |
 
 ## Inline finding body (GitHub `comments[].body`)
 
@@ -119,7 +192,7 @@ Do:
 2. Add/adjust tests: {what to assert}
 3. Run scoped validation: {command}
 
-Keep the fix minimal. Do not expand scope.
+💡 Keep the fix minimal. Do not expand scope.
 ```
 
 </details>
@@ -147,7 +220,7 @@ The prompt inside the fence must be copy-pasteable for another agent:
    Use capital `B`; never bury the branch in a parenthetical opener.
 2. State the problem in short bullets with file/symbol cues.
 3. Number concrete **Do** steps (fix + tests + scoped validation).
-4. Say keep the fix minimal / do not expand scope.
+4. Close with `💡 Keep the fix minimal. Do not expand scope.`
 5. Stay severity-proportional: Low/Nit prompts must not sound blocking.
 6. Wrap code expressions in backticks, including identifiers,
    literals, expressions, commands, and repo-relative paths. When an
@@ -251,6 +324,7 @@ sections:
 ## Unplaceable findings
 
 If a finding has no commentable diff line, put its full inline body
-(including the AI prompt details) under the summary after the blunt
-take, under a `### Unplaced findings` heading, and note that in chat
-before posting.
+(including the AI prompt details) under the summary after the take
+line, under a `### Unplaced findings` heading, and note that in chat
+before posting. Unplaced findings still count toward severity tallies
+and `{take_emoji}`.
