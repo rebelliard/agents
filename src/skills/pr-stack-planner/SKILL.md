@@ -155,10 +155,28 @@ URL.
 When PR URLs exist or the user asks for PR-body instructions, include the same
 full stack table in every PR body:
 
-- add `Depends on`, `Blocks`, and `Stack order: N/M`;
-- mark the current row with `📍` before its PR link;
-- append `*(this PR)*` to the current row's role;
-- move those two current-row markers for each PR body.
+- add `Depends on`, `Blocks`, and `Stack order: N/M` when useful;
+- use three columns: `#`, `PR`, `Role`;
+- for every non-current row, put the PR link in the `PR` column
+  (`[#N](URL)`);
+- for the current row, put exactly `📍 this PR` in the `PR` column — never a
+  numbered link, and never `_(this PR)_` / `*(this PR)*` in the `Role` column;
+- move that current-row marker when writing each PR body.
+
+### Role text
+
+Derive `Role` from the PR title:
+
+1. Strip the conventional-commit prefix (`type(scope):`, `type!:`, `type:`,
+   including optional scope and breaking-change `!`).
+2. Keep the remainder verbatim, including any trailing title emoji.
+3. Format it in sentence case (capitalize the first letter; leave package names,
+   paths, and symbols as they appear in the title).
+4. Prefer backticks around package names, paths, and symbols when the title uses
+   them or when they would otherwise read as plain prose.
+
+Do not invent shorter role summaries. The role should read as the title without
+the conventional-commit prefix.
 
 Title emoji policy comes from rules outside this skill:
 
@@ -166,15 +184,16 @@ Title emoji policy comes from rules outside this skill:
   role in the body table.
 - If the PR title has no trailing emoji, do not add one to the table.
 - Never invent, remove, or replace a title emoji.
-- The `📍` current-row marker is independent of the title emoji.
+- The `📍 this PR` marker lives only in the `PR` column and is independent of
+  the title emoji.
 
-Example where only PR 1 has a title emoji:
+Example:
 
 ```markdown
-| #   | PR             | Role                                        |
-| --- | -------------- | ------------------------------------------- |
-| 1/2 | 📍 [#101](URL) | Introduce explicit contracts 😇 _(this PR)_ |
-| 2/2 | [#102](URL)    | Remove the compatibility bridge             |
+| #   | PR          | Role                            |
+| --- | ----------- | ------------------------------- |
+| 1/2 | 📍 this PR  | Introduce explicit contracts 😇 |
+| 2/2 | [#102](URL) | Remove the compatibility bridge |
 ```
 
 ## Optional Markdown export

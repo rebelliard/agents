@@ -34,15 +34,18 @@ text after stripping the private footer.
 On PR {pr_url}, fix {short problem}.
 - Branch: `{branch}`
 
-Problem:
+## Problem
 - {bullet}
 - {bullet}
 
-Do:
+## Do
 1. {concrete step}
 2. {concrete step}
 3. Add/adjust tests: {what to assert}
-4. Run scoped validation: {pnpm --filter … or equivalent}
+
+## Validation
+- {repo-native command 1, e.g. pnpm --filter … / bundle exec rspec …}
+- {repo-native command 2}
 
 💡 Keep the fix minimal. Do not expand scope.
 ```
@@ -184,13 +187,15 @@ block. Use this label **verbatim** in `<summary>`.
 On PR {pr_url}, fix {short problem}.
 - Branch: `{branch}`
 
-Problem:
+## Problem
 - {bullet}
 
-Do:
+## Do
 1. {concrete step}
 2. Add/adjust tests: {what to assert}
-3. Run scoped validation: {command}
+
+## Validation
+- {repo-native command, e.g. pnpm --filter … / bundle exec rspec …}
 
 💡 Keep the fix minimal. Do not expand scope.
 ```
@@ -218,11 +223,16 @@ The prompt inside the fence must be copy-pasteable for another agent:
 1. Start with `On PR {pr_url}, {goal}.`, then put the head branch on
    its own bullet: `- Branch:` followed by the backticked branch name.
    Use capital `B`; never bury the branch in a parenthetical opener.
-2. State the problem in short bullets with file/symbol cues.
-3. Number concrete **Do** steps (fix + tests + scoped validation).
-4. Close with `💡 Keep the fix minimal. Do not expand scope.`
-5. Stay severity-proportional: Low/Nit prompts must not sound blocking.
-6. Wrap code expressions in backticks, including identifiers,
+2. State the problem under `## Problem` in short bullets with
+   file/symbol cues.
+3. Number concrete fix + test steps under `## Do`.
+4. List scoped validation commands under `## Validation` (one bullet
+   per command). Use whatever this repo actually runs — detect from
+   lockfiles / README / CI (`pnpm`, `npm`, `bundle exec`, `rake`,
+   `mix`, `cargo`, `make`, …). Do not assume pnpm on every repo.
+5. Close with `💡 Keep the fix minimal. Do not expand scope.`
+6. Stay severity-proportional: Low/Nit prompts must not sound blocking.
+7. Wrap code expressions in backticks, including identifiers,
    literals, expressions, commands, and repo-relative paths. When an
    expression already contains backticks, use `formatInlineCode()`
    rather than creating a broken single-backtick span.
